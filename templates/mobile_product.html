@@ -1,0 +1,87 @@
+{# templates/mobile_product.html #}
+{% extends "base.html" %}
+
+{% block title %}상품 상세{% endblock %}
+
+{% block css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/mobile_product.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="iphone-wrapper">
+  <div class="aurora-bg"></div>
+
+  <div class="iphone-frame">
+    <div class="app-content">
+      <h1>상품 정보</h1>
+
+      <!-- ✅ 서버에서 넘겨준 product 하나를 카드로 바로 렌더링 -->
+      <section id="productList" class="product-grid">
+
+        <article class="product-card">
+          <div class="product-image-wrap">
+            {% if product.image_path %}
+              <img
+                src="{{ url_for('static', filename=product.image_path) }}"
+                alt="{{ product.name }}"
+                class="product-image"
+              >
+            {% else %}
+              <div class="img-placeholder">NO IMAGE</div>
+            {% endif %}
+          </div>
+
+          <div class="product-info">
+            <h2 class="product-name">{{ product.name }}</h2>
+            <p class="product-meta">
+              {{ "{:,.0f}".format(product.price) }}원 ·
+              사이즈 {{ product.size }} /
+              색상 {{ product.color }}
+            </p>
+          </div>
+
+          <div class="product-status">
+            <p class="status-text">
+              이 상품은 현재 장바구니에 담긴 상태입니다.
+            </p>
+            <p class="status-sub">
+              다른 옷 NFC를 찍으면 이 화면에 상품이 계속 추가됩니다.
+            </p>
+          </div>
+        </article>
+
+      </section>
+    </div>
+  </div>
+</div>
+
+<!-- 상품 상세 팝업 (지금은 안 써도 되지만 유지) -->
+<div id="itemModal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-img-area">
+      <div class="img-placeholder">IMAGE</div>
+    </div>
+
+    <h2 id="modalName"></h2>
+    <p id="modalDesc"></p>
+
+    <label for="sizeSelect">사이즈</label>
+    <select id="sizeSelect"></select>
+
+    <label for="colorSelect">컬러</label>
+    <select id="colorSelect"></select>
+
+    <div class="modal-actions">
+      <button id="changeBtn" class="sub-btn">옵션 바꾸기</button>
+      <button id="addBtn" class="main-btn">담기</button>
+    </div>
+
+    <button id="closeModal" class="close">×</button>
+  </div>
+</div>
+{% endblock %}
+
+{% block body_extra %}
+{# JS가 UI를 망가뜨리면, 일단 아래 스크립트는 잠깐 주석 처리해도 됨 #}
+<script type="module" src="{{ url_for('static', filename='js/mobile_product.js') }}"></script>
+{% endblock %}

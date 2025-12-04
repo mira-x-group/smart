@@ -1,12 +1,17 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, make_response, url_for
 import os
 import base64
 import time
 from io import BytesIO
+import uuid # ✅ 추가
+import json
+
 
 from dotenv import load_dotenv
 from google import genai
 from PIL import Image
+
+from models import db, User, Product, Session, ScanLog, DeleteLog   # ✅ 로그 모델 추가
 
 # -----------------------------
 # 환경 변수 & Gemini 설정
@@ -15,6 +20,14 @@ load_dotenv()
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 
 app = Flask(__name__, template_folder="templates")
+
+# -----------------------------
+# DB 설정 (SQLite)
+# -----------------------------
+app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///db.sqlite3"
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db.init_app(app)   # ✅ Flask 앱과 DB 연결
 
 # -----------------------------
 # 폴더 경로 기본 설정
@@ -37,7 +50,7 @@ else:
 
 # 나노바나나 Flash 이미지 모델
 GEMINI_IMAGE_MODEL = "gemini-2.5-flash-image"
-# 더 고퀄로 가고 싶으면 (요금/쿼터 상관있음):
+# 더 고퀄로 가고 싶으면:
 # GEMINI_IMAGE_MODEL = "gemini-3-pro-image-preview"
 
 
@@ -390,7 +403,429 @@ def result_page():
 
 
 # -----------------------------
+# 상품 상세 페이지 (NFC 딥링크 진입용)
+# -----------------------------
+@app.route("/product/<int:product_id>")
+def product_detail(product_id):
+    # 1) DB에서 해당 상품 조회 (없으면 404 페이지)
+    product = Product.query.get_or_404(product_id)
+
+    # 2) 템플릿에 넘겨서 렌더링
+    return render_template("product_detail.html", product=product)
+
+# -----------------------------
+# 모바일 상품 진입 (NFC용)
+# - 세션 찾고
+# - 상품을 세션에 추가하고
+# - ScanLog 기록 남기고
+# - 최종적으로 /m/session 으로 리다이렉트
+# -----------------------------
+@app.route("/m/product/<int:product_id>")
+def mobile_product(product_id):
+    # 1) 상품 DB 조회
+    product = Product.query.get_or_404(product_id)
+
+    # 2) 쿠키에서 sessionId 가져오기
+    session_id = request.cookies.get("sessionId")
+
+    if not session_id:
+        # 세션이 없으면 새로 생성
+        session_id = str(uuid.uuid4())
+        session = Session(id=session_id)
+        db.session.add(session)
+    else:
+        # 기존 세션 찾기
+        session = Session.query.get(session_id)
+        if session is None:
+            # 쿠키에 있는데 DB에 없으면 새로 생성
+            session = Session(id=session_id)
+            db.session.add(session)
+
+    # 3) 이 세션에 현재 상품 추가 (중복 허용 X)
+    session.add_product(str(product_id))
+
+    # 4) ScanLog 남기기 (고객이 이 상품을 스캔했다는 기록)
+    scan_log = ScanLog(session_id=session.id, product_id=product.id)
+    db.session.add(scan_log)
+
+    # 5) 커밋
+    db.session.commit()
+
+    # 6) /m/session 으로 리다이렉트 (목록 페이지)
+    resp = redirect(url_for("mobile_session_page"))
+    resp.set_cookie("sessionId", session_id, max_age=3600, httponly=True, samesite="Lax")
+    return resp
+
+# -----------------------------
+# 모바일 세션 페이지
+# - 이 세션에서 스캔한 모든 상품을 한 페이지에서 보여줌
+# -----------------------------
+@app.route("/m/session")
+def mobile_session_page():
+    session_id = request.cookies.get("sessionId")
+
+    if not session_id:
+        # 아직 아무 것도 스캔 안 한 상태
+        return render_template("mobile_session.html", products=[], message="스캔된 상품이 없습니다.")
+
+    session = Session.query.get(session_id)
+    if session is None:
+        return render_template("mobile_session.html", products=[], message="세션을 찾을 수 없습니다.")
+
+    # ["1","3","2", ...]
+    clicked_ids = session.get_clicked_products()
+    if not clicked_ids:
+        return render_template("mobile_session.html", products=[], message="스캔된 상품이 없습니다.")
+
+    # 문자열 → int 변환 (에러나는 건 건너뛰기)
+    int_ids = []
+    for pid in clicked_ids:
+        try:
+            int_ids.append(int(pid))
+        except ValueError:
+            continue
+
+    # 해당 상품들 조회
+    if not int_ids:
+        return render_template("mobile_session.html", products=[], message="상품 정보를 찾을 수 없습니다.")
+
+    products = Product.query.filter(Product.id.in_(int_ids)).all()
+
+    # DB는 순서가 뒤죽박죽일 수 있어서, clicked_products 순서대로 다시 정렬
+    product_map = {p.id: p for p in products}
+    ordered_products = [product_map[pid] for pid in int_ids if pid in product_map]
+
+    return render_template("mobile_session.html", products=ordered_products, message=None)
+
+# -----------------------------
+# 모바일 세션에서 특정 상품 삭제
+# - 세션.clicked_products 에서 제거
+# - DeleteLog 기록 남김
+# -----------------------------
+@app.route("/m/session/delete/<int:product_id>", methods=["POST"])
+def mobile_session_delete(product_id):
+    session_id = request.cookies.get("sessionId")
+    if not session_id:
+        return redirect(url_for("mobile_session_page"))
+
+    session = Session.query.get(session_id)
+    if session is None:
+        return redirect(url_for("mobile_session_page"))
+
+    # 세션에서 제거
+    session.remove_product(str(product_id))
+
+    # 삭제 로그 남기기
+    delete_log = DeleteLog(session_id=session.id, product_id=product_id)
+    db.session.add(delete_log)
+
+    db.session.commit()
+
+    return redirect(url_for("mobile_session_page"))
+
+
+@app.route("/m/cart")
+def mobile_cart_page():
+    """
+    현재 브라우저의 sessionId 쿠키를 기준으로
+    담긴 상품 목록을 간단히 보여주는 모바일 장바구니 페이지.
+    (UI는 임시, 나중에 예쁘게)
+    """
+    session_id = request.cookies.get("sessionId")
+
+    if not session_id:
+        # 세션 쿠키 자체가 없으면 장바구니 비어있다고 처리
+        cart_items = []
+        session = None
+    else:
+        session = Session.query.get(session_id)
+        if session is None:
+            cart_items = []
+        else:
+            # 이미 만들어둔 helper 재사용
+            cart_items = build_cart_items(session)
+
+    return render_template(
+        "mobile_cart.html",
+        cart_items=cart_items,
+        session=session
+    )
+
+
+# -----------------------------
+# ✅ Session 기반 API들
+# -----------------------------
+
+@app.route("/api/session/init", methods=["POST"])
+def init_session():
+    """
+    웹앱이 생성한 sessionId를 서버에 등록하는 API.
+    Body(JSON): { "sessionId": "랜덤UUID" }
+    """
+    data = request.get_json(silent=True) or {}
+    session_id = data.get("sessionId")
+
+    if not session_id:
+        return jsonify({"status": "error", "message": "sessionId is required"}), 400
+
+    session = Session.query.get(session_id)
+    created = False
+
+    if session is None:
+        # 새 세션 생성 (created_at은 models.py에서 default=datetime.utcnow)
+        session = Session(id=session_id)
+        db.session.add(session)
+        db.session.commit()
+        created = True
+
+    app.logger.info(f"[Session init] {session_id} (created={created})")
+
+    return jsonify({
+        "status": "success",
+        "created": created,
+        "sessionId": session.id,
+    }), 200
+
+
+@app.route("/api/session/<session_id>/product", methods=["POST"])
+def add_clicked_product(session_id):
+    """
+    세션에 '어떤 상품을 클릭했다'는 기록을 추가.
+    Body(JSON): { "productId": "1" } 또는 "P001" 등 문자열 가능
+    """
+    data = request.get_json(silent=True) or {}
+    product_id = data.get("productId")
+
+    if not product_id:
+        return jsonify({"status": "error", "message": "productId is required"}), 400
+
+    session = Session.query.get(session_id)
+    if session is None:
+        return jsonify({"status": "error", "message": "session not found"}), 404
+
+    # 문자열로 저장해두면, P001이든 "1"이든 다 처리 가능
+    session.add_product(str(product_id))
+    db.session.commit()
+
+    clicked = session.get_clicked_products()
+    app.logger.info(f"[Session add product] {session_id}: {clicked}")
+
+    return jsonify({
+        "status": "success",
+        "sessionId": session.id,
+        "clickedProducts": clicked,
+    }), 200
+
+
+@app.route("/api/session/<session_id>", methods=["GET"])
+def get_session_info(session_id):
+    """
+    스마트미러 → 서버
+    GET /api/session/:sessionId
+
+    Response:
+    {
+      "clickedProducts": ["P001", "P003", ...]
+    }
+    """
+    session = Session.query.get(session_id)
+    if session is None:
+        return jsonify({"status": "error", "message": "session not found"}), 404
+
+    clicked = session.get_clicked_products()
+
+    return jsonify({
+        "status": "success",
+        "sessionId": session.id,
+        "clickedProducts": clicked,
+    }), 200
+
+
+@app.route("/api/product/<int:product_id>", methods=["GET"])
+def get_product_api(product_id):
+    """
+    상품 상세 조회 API
+    GET /api/product/1
+    JS에서 바로 product.id, product.name ... 으로 접근하게 평평한 구조로 반환
+    """
+    product = Product.query.get(product_id)
+    if product is None:
+        return jsonify({"error": "product not found"}), 404
+
+    return jsonify({
+        "id": product.id,
+        "name": product.name,
+        "desc": "",  # 필요하면 나중에 Product 모델에 desc 컬럼 추가해서 채우면 됨
+        "imageUrl": f"/static/{product.image_path}",  # ex) /static/tops/top1.jpg
+        # 기존 DB는 size/color가 1개라서 배열로 감싸서 넘겨줌
+        "sizes": [product.size] if product.size else [],
+        "colors": [product.color] if product.color else [],
+    }), 200
+
+def build_cart_items(session: Session):
+    """
+    Session.clicked_products (["1","3","2"...]) 를
+    server.js 스타일 cart item 리스트로 변환
+    """
+    items = session.get_clicked_products()  # ["1","3","2", ...]
+    result = []
+
+    for idx, pid in enumerate(items):
+        try:
+            pid_int = int(pid)
+        except ValueError:
+            continue
+
+        product = Product.query.get(pid_int)
+        if not product:
+            continue
+
+        result.append({
+            "id": idx,                # 프론트에서 사용할 cartItemId (index 기반)
+            "productId": product.id,
+            "name": product.name,
+            "size": product.size,
+            "color": product.color,
+            "timestamp": session.created_at.isoformat(),
+        })
+    return result
+
+
+@app.route("/api/session/<session_id>/cart", methods=["GET"])
+def get_session_cart(session_id):
+    """
+    대표 server.js의:
+    GET /api/session/:sessionId/cart
+    과 동일한 역할.
+    """
+    session = Session.query.get(session_id)
+    if session is None:
+        # 필요하면 여기서 새로 생성해도 되지만, 우리는 /m/product에서 생성하므로 404로 처리
+        return jsonify({"error": "session not found"}), 404
+
+    cart_items = build_cart_items(session)
+    return jsonify(cart_items), 200
+
+@app.route("/api/session/<session_id>/add", methods=["POST"])
+def add_session_cart_item(session_id):
+    """
+    세션에 상품 담기
+    Body(JSON): { "productId": 1, "size": "...", "color": "..." }
+    size/color는 지금은 DB의 product.size/color를 쓰므로 없어도 동작함.
+    """
+    data = request.get_json(silent=True) or {}
+    product_id = data.get("productId")
+
+    if not product_id:
+        return jsonify({"error": "productId is required"}), 400
+
+    # 세션 조회 (없으면 생성)
+    session = Session.query.get(session_id)
+    if session is None:
+        session = Session(id=session_id)
+        db.session.add(session)
+
+    # Product 존재 확인
+    try:
+        pid_int = int(product_id)
+    except ValueError:
+        return jsonify({"error": "invalid productId"}), 400
+
+    product = Product.query.get(pid_int)
+    if product is None:
+        return jsonify({"error": "product not found"}), 404
+
+    # 세션에 productId 추가 (models.Session.add_product는 문자열 리스트에 append)
+    session.add_product(str(product.id))
+    db.session.commit()
+
+    # 방금 상태 기준 cartItems 재생성
+    cart_items = build_cart_items(session)
+    # 마지막 아이템만 돌려주고 싶으면 cart_items[-1]로 해도 됨
+    return jsonify(cart_items[-1] if cart_items else {}), 200
+
+@app.route("/api/session/<session_id>/cart/<int:item_id>", methods=["DELETE"])
+def delete_session_cart_item(session_id, item_id):
+    """
+    대표 server.js의:
+    DELETE /api/session/:sessionId/cart/:itemId
+    와 비슷한 역할.
+    여기서는 itemId를 clicked_products 리스트의 index로 사용.
+    """
+    session = Session.query.get(session_id)
+    if session is None:
+        return jsonify({"error": "session not found"}), 404
+
+    items = session.get_clicked_products()  # ["1","3","2", ...]
+
+    if item_id < 0 or item_id >= len(items):
+        return jsonify({"error": "item not found"}), 404
+
+    # 해당 index 삭제
+    removed = items.pop(item_id)
+    session.clicked_products = json.dumps(items)
+    db.session.commit()
+
+    return jsonify({"success": True, "removed": removed}), 200
+
+# -----------------------------
+# 🔍 세션 디버그 페이지
+# -----------------------------
+@app.route("/debug/session/current")
+def debug_current_session():
+    """
+    현재 브라우저의 sessionId 쿠키 기준으로 세션 상태를 확인하는 페이지.
+    """
+    session_id = request.cookies.get("sessionId")
+    if not session_id:
+        return render_template("debug_session.html",
+                               session=None,
+                               cart_items=[],
+                               message="쿠키에 sessionId가 없습니다. /m/product/<id> 를 한번 방문해보세요.")
+
+    session = Session.query.get(session_id)
+    if session is None:
+        return render_template("debug_session.html",
+                               session=None,
+                               cart_items=[],
+                               message=f"DB에서 sessionId={session_id} 세션을 찾을 수 없습니다.")
+
+    cart_items = build_cart_items(session)
+    return render_template("debug_session.html",
+                           session=session,
+                           cart_items=cart_items,
+                           message=None)
+
+
+@app.route("/debug/session/<session_id>")
+def debug_session(session_id):
+    """
+    특정 sessionId를 직접 넣어서 조회하는 디버그 페이지.
+    """
+    session = Session.query.get(session_id)
+    if session is None:
+        return render_template("debug_session.html",
+                               session=None,
+                               cart_items=[],
+                               message=f"DB에서 sessionId={session_id} 세션을 찾을 수 없습니다.")
+
+    cart_items = build_cart_items(session)
+    return render_template("debug_session.html",
+                           session=session,
+                           cart_items=cart_items,
+                           message=None)
+
+
+# -----------------------------
 # Flask 실행
 # -----------------------------
 if __name__ == "__main__":
-    app.run(debug=True) 
+    # HTTPS(임시 인증서) + 포트 5001로 실행
+    app.run(
+        debug=True,
+        host="0.0.0.0",
+        port=5001,
+        ssl_context="adhoc",  # Flask가 자동으로 self-signed cert 생성
+    )
+
+

@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+
+{% block title %}스캔한 상품 목록{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>스캔한 상품</h2>
+
+    {% if message %}
+        <p>{{ message }}</p>
+    {% endif %}
+
+    <div class="product-list">
+        {% for p in products %}
+        <div class="product-card">
+            <img src="{{ url_for('static', filename=p.image_path) }}" alt="{{ p.name }}">
+            <div class="info">
+                <div class="name">{{ p.name }}</div>
+                <div class="price">{{ "{:,}".format(p.price or 0) }}원</div>
+            </div>
+
+            <form method="POST" action="{{ url_for('mobile_session_delete', product_id=p.id) }}">
+                <button type="submit" class="delete-btn">삭제</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<style>
+.container {
+    padding: 16px;
+    font-family: "Pretendard", sans-serif;
+}
+.product-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.product-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 8px;
+}
+.product-card img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border-radius: 6px;
+}
+.info {
+    flex: 1;
+}
+.name {
+    font-size: 14px;
+    margin-bottom: 4px;
+}
+.price {
+    font-weight: 600;
+}
+.delete-btn {
+    border: none;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: #ff5b5b;
+    color: white;
+    font-size: 12px;
+}
+</style>
+{% endblock %}
