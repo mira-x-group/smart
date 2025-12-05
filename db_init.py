@@ -1,18 +1,22 @@
+# db_init.py
+
 from app import app
-from models import db, User, Product, Session  # ✅ Session 추가
+from models import db, User, Product, Session, ScanLog, DeleteLog
 
 
 def init_db():
     with app.app_context():
-        # 개발 단계라 과감하게 전체 드랍 후 재생성
+        # 1) 전체 테이블 드랍 후 재생성
+        print("⚠️ dropping all tables...")
         db.drop_all()
+        print("✅ creating all tables...")
         db.create_all()
 
-        # 1) 사용자 1명 (네 정보)
+        # 2) 예시 유저 1명 (원하면 나중에 삭제해도 됨)
         me = User(name="이정우", phone="010-0000-0000")
         db.session.add(me)
 
-        # 2) 상의 4개
+        # 3) 상의 4개
         tops = [
             Product(
                 name="화이트 티셔츠",
@@ -48,7 +52,7 @@ def init_db():
             ),
         ]
 
-        # 3) 하의 4개
+        # 4) 하의 4개
         bottoms = [
             Product(
                 name="슬림 청바지",
@@ -85,12 +89,15 @@ def init_db():
         ]
 
         db.session.add_all(tops + bottoms)
+
+        # 5) 세션/로그 테이블은 비워둠
+        #    Session / ScanLog / DeleteLog 테이블은 create_all()에서 이미 생성됨
         db.session.commit()
 
         print("✅ DB 초기화 완료!")
         print("   - User 1명")
         print("   - 상의 4개, 하의 4개")
-        print("   - sessions 테이블도 생성됨 (Session 모델)")  # ✅ 안내 메시지 추가
+        print("   - sessions, scan_logs, delete_logs 테이블 생성")
 
 
 if __name__ == "__main__":
