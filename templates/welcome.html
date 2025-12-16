@@ -1,14 +1,12 @@
-{% extends "base.html" %}
-
-{% block title %}시작하기{% endblock %}
-
-{% block css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/welcome.css') }}">
-{% endblock %}
-
-{% block content %}
-{% endblock %}
-
-{% block body_extra %}
-    <script src="{{ url_for('static', filename='js/welcome.js') }}"></script>
-{% endblock %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>시작하기</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/welcome.css') }}">
+</head>
+<body class="welcome-page">
+  <script src="{{ url_for('static', filename='js/welcome.js') }}"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
-// static/js/welcome.js
-
-document.body.addEventListener("click", () => {
-    window.location.href = "/start";
+document.addEventListener("DOMContentLoaded", () => {
+    document.body.addEventListener("click", () => {
+        window.location.href = "/start";
+    });
 });

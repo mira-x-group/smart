@@ -1,17 +1,22 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mira X · Loading</title>
 
-{% block title %}Aurora Loading{% endblock %}
+  <!-- 외부 CSS 연결 -->
+  <link rel="stylesheet" href="loading.css">
+</head>
+<body>
 
-{% block css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}">
-{% endblock %}
+  <!-- 오로라 배경 -->
+  <div class="aurora"></div>
 
-{% block content %}
-    <div class="aurora"></div>
-    
-    <div class="loading-text">Loading</div>
-{% endblock %}
+  <!-- 텍스트 -->
+  <div class="loading-text">Loading</div>
 
-{% block body_extra %}
-    <script src="{{ url_for('static', filename='js/loading.js') }}"></script>
-{% endblock %}
+  <!-- JS 연결 -->
+  <script src="loading.js"></script>
+</body>
+</html>

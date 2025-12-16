@@ -1,5 +1,3 @@
-// static/js/loading.js
-
 (async function() {
   try {
     // localStorage에서 선택된 옷 정보 가져오기
@@ -11,15 +9,13 @@
     }
 
     const tryonData = JSON.parse(tryonDataStr);
-    
+
     // 사용자 이미지 업로드
     const capturedImage = localStorage.getItem('capturedImage');
     if (capturedImage) {
       await fetch('/upload', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ image: capturedImage })
       });
     }
@@ -31,18 +27,12 @@
     // Try-on API 호출
     const response = await fetch('/tryon', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        top: topPath,
-        bottom: bottomPath,
-        mode: tryonData.mode
-      })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ top: topPath, bottom: bottomPath, mode: tryonData.mode })
     });
 
     const result = await response.json();
-    
+
     if (result.error) {
       alert('오류: ' + result.error);
       window.location.href = '/select';
@@ -50,12 +40,12 @@
     }
 
     if (result.result) {
-      // 결과 페이지로 이동
       window.location.href = `/result?image=${encodeURIComponent(result.result)}`;
     } else {
       alert('결과를 생성할 수 없습니다.');
       window.location.href = '/select';
     }
+
   } catch (error) {
     console.error('Error:', error);
     alert('오류가 발생했습니다: ' + error.message);

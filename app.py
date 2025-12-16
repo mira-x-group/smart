@@ -265,7 +265,7 @@ def welcome():
 # -----------------------------
 @app.route("/start")
 def start_page():
-    return render_template("index.html")
+    return render_template("nfc.html")
 
 
 # -----------------------------
@@ -277,15 +277,7 @@ def capture_page():
 
 
 # -----------------------------
-# 4) review (촬영 결과 확인)
-# -----------------------------
-@app.route("/review")
-def review_page():
-    return render_template("review.html")
-
-
-# -----------------------------
-# 5) 사진 업로드
+# 4) 사진 업로드
 # -----------------------------
 @app.route("/upload", methods=["POST"])
 def upload_image():
@@ -303,7 +295,7 @@ def upload_image():
 
 
 # -----------------------------
-# 6) select (옷 선택 화면)
+# 5) select (옷 선택 화면)
 # -----------------------------
 @app.route("/select")
 def select_page():
@@ -313,7 +305,7 @@ def select_page():
 
 
 # -----------------------------
-# 7) loading 화면
+# 6) loading 화면
 # -----------------------------
 @app.route("/loading")
 def loading_page():
@@ -321,7 +313,7 @@ def loading_page():
 
 
 # -----------------------------
-# 8-0) Gemini 텍스트 테스트용
+# 7-0) Gemini 텍스트 테스트용
 # -----------------------------
 @app.route("/test_gemini", methods=["POST"])
 def test_gemini():
@@ -347,7 +339,7 @@ def test_gemini():
 
 
 # -----------------------------
-# 8-1) TRY-ON (Gemini 기반)
+# 7-1) TRY-ON (Gemini 기반)
 # -----------------------------
 @app.route("/tryon", methods=["POST"])
 def tryon():
@@ -424,7 +416,7 @@ def tryon():
 
 
 # -----------------------------
-# 9) result 화면
+# 8) result 화면
 # -----------------------------
 @app.route("/result")
 def result_page():
