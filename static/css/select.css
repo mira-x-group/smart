@@ -114,7 +114,7 @@ body {
   bottom: 0;
   width: 100%;
   height: 32%;
-  padding: 12px 24px 20px;
+  padding: 12px 24px 28px; /* 숫자(하단 라벨) 공간 확보 */
   background: linear-gradient(
     to top,
     rgba(15, 23, 42, 0.9),
@@ -127,16 +127,36 @@ body {
   box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.4);
 
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+
+  /* 3열 */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  /* ✅ 수정: auto → 1fr (행이 내용 때문에 커지는 현상 방지) */
   grid-template-rows: repeat(2, 1fr);
-  gap: 8px 12px;
+
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+
+  gap: 25px 12px;
   align-items: stretch;
+
+  overflow: visible; /* 슬롯 아래로 내려가는 숫자 잘림 방지 */
+}
+
+/* ✅ 3개/3개(총 6개)만 보이게: 7,8번 숨김 (크기 변경 아님) */
+.clothes-strip .cloth-item:nth-child(n+7) {
+  display: none;
 }
 
 .cloth-item {
   position: relative;
-  width: 100%;
-  height: 100%;
+
+  /* ✅ 수정: 슬롯 폭 축소 */
+  width: 60%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+
   border-radius: 12px;
   background: radial-gradient(circle at top, rgba(255,255,255,0.18), rgba(15,23,42,0.85));
   border: 1px solid rgba(148, 163, 184, 0.6);
@@ -149,7 +169,10 @@ body {
     box-shadow 0.18s ease,
     border-color 0.18s ease,
     background 0.18s ease;
-  overflow: hidden;
+
+  /* ✅ 수정: padding-bottom 제거 (이게 카드 커보이게 만들었음) */
+  overflow: visible;
+
   cursor: pointer;
 }
 
@@ -197,10 +220,16 @@ body {
 }
 
 .cloth-number {
+  /* 슬롯 바깥 하단 중앙 */
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
   font-size: 14px;
   font-weight: 500;
   color: #e5e7eb;
   opacity: 0.9;
+  pointer-events: none;
 }
 
 .cloth-fav {
