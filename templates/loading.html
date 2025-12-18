@@ -6,8 +6,9 @@
   <title>Mira X · Loading</title>
 
   <!-- 외부 CSS 연결 -->
-  <link rel="stylesheet" href="loading.css">
-</head>
+   <link rel="stylesheet" href="{{ url_for('static', filename='css/loading.css') }}">
+
+ </head>
 <body>
 
   <!-- 오로라 배경 -->
@@ -17,6 +18,6 @@
   <div class="loading-text">Loading</div>
 
   <!-- JS 연결 -->
-  <script src="loading.js"></script>
+   <script src="{{ url_for('static', filename='js/loading.js') }}"></script>
 </body>
 </html>

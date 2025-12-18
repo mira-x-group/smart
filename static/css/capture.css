@@ -1,4 +1,8 @@
-* { box-sizing: border-box; margin: 0; padding: 0; }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
@@ -20,7 +24,7 @@ body {
   background: radial-gradient(circle at top, rgba(248, 250, 252, 0.16), rgba(15, 23, 42, 0.92));
   box-shadow:
     0 0 0 1px rgba(148, 163, 184, 0.5),
-    0 25px 60px rgba(0,0,0,0.9);
+    0 25px 60px rgba(0, 0, 0, 0.9);
   backdrop-filter: blur(22px);
   -webkit-backdrop-filter: blur(22px);
 }
@@ -29,13 +33,11 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom right,
-    rgba(255,255,255,0.14),
-    transparent 30%,
-    transparent 70%,
-    rgba(15,23,42,0.8)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.14),
+      transparent 30%,
+      transparent 70%,
+      rgba(15, 23, 42, 0.8));
   pointer-events: none;
   mix-blend-mode: screen;
 }
@@ -76,8 +78,8 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 0 0 1px rgba(15,23,42,0.9),
-    0 18px 40px rgba(0,0,0,0.9);
+    0 0 0 1px rgba(15, 23, 42, 0.9),
+    0 18px 40px rgba(0, 0, 0, 0.9);
 }
 
 .camera-area {
@@ -98,7 +100,8 @@ body {
 }
 
 #cameraFeed {
-  transform: scaleX(-1); /* 거울처럼 좌우 반전 */
+  transform: scaleX(-1);
+  /* 거울처럼 좌우 반전 */
 }
 
 .fade-layer {
@@ -107,6 +110,7 @@ body {
   transform: scale(0.99);
   transition: opacity 0.35s ease, transform 0.35s ease;
 }
+
 .fade-layer.visible {
   opacity: 1;
   pointer-events: auto;
@@ -140,8 +144,8 @@ body {
   width: 32%;
   aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 2.6px solid rgba(248,250,252,0.95);
-  box-shadow: 0 0 18px rgba(248,250,252,0.95);
+  border: 2.6px solid rgba(248, 250, 252, 0.95);
+  box-shadow: 0 0 18px rgba(248, 250, 252, 0.95);
 }
 
 .person-body {
@@ -152,8 +156,8 @@ body {
   width: 60%;
   height: 62%;
   border-radius: 38px 38px 46px 46px;
-  border: 2.6px solid rgba(248,250,252,0.95);
-  box-shadow: 0 0 18px rgba(199,210,254,0.9);
+  border: 2.6px solid rgba(248, 250, 252, 0.95);
+  box-shadow: 0 0 18px rgba(199, 210, 254, 0.9);
 }
 
 /* 안내 문구 */
@@ -165,9 +169,9 @@ body {
   margin: 0 auto;
   font-size: 11px;
   color: #e5e7eb;
-  text-shadow: 0 1px 4px rgba(0,0,0,0.9);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.9);
   pointer-events: none;
-  text-align:ρο center;
+  text-align: ρο center;
   max-width: 80%;
   transition: opacity 0.3s ease;
 }
@@ -181,6 +185,7 @@ body {
   opacity: 0;
   transition: opacity 0.15s ease;
 }
+
 .scan-overlay.active {
   opacity: 1;
 }
@@ -204,16 +209,14 @@ body {
   right: 0;
   top: 0;
   height: 2px;
-  background: linear-gradient(
-    to right,
-    transparent,
-    #ffffff,
-    #a855f7,
-    #6366f1,
-    #ffffff,
-    transparent
-  );
-  box-shadow: 0 0 16px rgba(129,140,248,0.95);
+  background: linear-gradient(to right,
+      transparent,
+      #ffffff,
+      #a855f7,
+      #6366f1,
+      #ffffff,
+      transparent);
+  box-shadow: 0 0 16px rgba(129, 140, 248, 0.95);
   transition: top 0.9s linear;
 }
 
@@ -224,7 +227,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: radial-gradient(circle at center, rgba(15,23,42,0.7), rgba(15,23,42,0.9));
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.7), rgba(15, 23, 42, 0.9));
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.25s ease;
@@ -240,7 +243,7 @@ body {
   font-size: 72px;
   font-weight: 600;
   color: #f9fafb;
-  text-shadow: 0 0 28px rgba(129,140,248,0.95);
+  text-shadow: 0 0 28px rgba(129, 140, 248, 0.95);
   letter-spacing: 0.08em;
 }
 
@@ -259,41 +262,116 @@ body {
   transform: translateY(6px);
   transition: opacity 0.3s ease, transform 0.3s ease;
 }
+
 .fade-group.active {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
 }
 
-/* 촬영 버튼: 보라/블루 하이라이트 */
+/* 촬영 버튼: 미래지향적 셔터 (HUD 링 + 글로우 + 미세 펄스) */
 .capture-button {
-  width: 56px;
-  height: 56px;
+  width: 66px;
+  height: 66px;
   border-radius: 50%;
-  background: radial-gradient(circle at 30% 30%, #eef2ff, #4f46e5);
-  border: 3px solid #e5e7eb;
-  box-shadow:
-    0 0 0 1px rgba(129,140,248,0.7),
-    0 10px 26px rgba(15,23,42,0.9);
+  border: 1px solid rgba(148, 163, 184, 0.26);
   cursor: pointer;
   position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(255, 255, 255, 0.08), transparent 55%),
+    radial-gradient(circle at 50% 70%, rgba(99, 102, 241, 0.22), transparent 62%),
+    linear-gradient(180deg, rgba(2, 6, 23, 0.55), rgba(2, 6, 23, 0.92));
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.22) inset,
+    0 18px 44px rgba(0, 0, 0, 0.78),
+    0 0 34px rgba(99, 102, 241, 0.20);
+  transition: transform 0.14s ease, filter 0.18s ease, box-shadow 0.18s ease;
+  isolation: isolate;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .capture-button::before {
   content: "";
-  width: 38px;
-  height: 38px;
+  position: absolute;
+  inset: 8px;
   border-radius: 50%;
-  border: 2px solid rgba(248,250,252,0.95);
-  box-shadow: 0 0 14px rgba(199,210,254,0.95);
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.22), transparent 55%),
+    conic-gradient(from 210deg,
+      rgba(99, 102, 241, 0.0),
+      rgba(99, 102, 241, 0.85),
+      rgba(168, 85, 247, 0.85),
+      rgba(99, 102, 241, 0.0));
+  filter: blur(0.2px);
+  box-shadow:
+    0 0 0 1px rgba(248, 250, 252, 0.14) inset,
+    0 0 18px rgba(129, 140, 248, 0.55);
+  opacity: 0.95;
+  z-index: 1;
+}
+
+.capture-button::after {
+  content: "";
+  position: absolute;
+  inset: -14px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle, rgba(129, 140, 248, 0.22), transparent 58%),
+    radial-gradient(circle, rgba(168, 85, 247, 0.16), transparent 62%);
+  filter: blur(14px);
+  opacity: 0.9;
+  z-index: 0;
+  pointer-events: none;
+  transform: scale(0.98);
+  animation: shutterPulse 2.6s ease-in-out infinite;
+}
+
+@keyframes shutterPulse {
+
+  0%,
+  100% {
+    opacity: 0.65;
+    transform: scale(0.98);
+  }
+
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+/* 중앙 “렌즈” 느낌의 작은 코어 */
+.capture-button>span,
+.capture-button .core {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.12) 55%, rgba(0, 0, 0, 0.0) 72%),
+    radial-gradient(circle at 60% 70%, rgba(99, 102, 241, 0.55), rgba(168, 85, 247, 0.10) 60%, rgba(0, 0, 0, 0.0) 75%);
+  box-shadow:
+    0 0 0 1px rgba(248, 250, 252, 0.22),
+    0 0 14px rgba(129, 140, 248, 0.6);
+  z-index: 2;
+  pointer-events: none;
+}
+
+.capture-button:hover {
+  filter: brightness(1.06);
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.30) inset,
+    0 20px 54px rgba(0, 0, 0, 0.82),
+    0 0 44px rgba(168, 85, 247, 0.22);
 }
 
 .capture-button:active {
-  transform: translateY(1px) scale(0.98);
-  box-shadow: 0 5px 18px rgba(0,0,0,0.75);
+  transform: translateY(1px) scale(0.985);
+  box-shadow:
+    0 0 0 1px rgba(99, 102, 241, 0.18) inset,
+    0 12px 34px rgba(0, 0, 0, 0.76),
+    0 0 22px rgba(99, 102, 241, 0.14);
 }
 
 .bottom-hint {
@@ -319,11 +397,11 @@ body {
 .btn-recapture {
   background: #111827;
   color: #e5e7eb;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.7);
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.7);
 }
 
 .btn-next {
   background: linear-gradient(to right, #6366f1, #a855f7);
   color: #f9fafb;
-  box-shadow: 0 3px 12px rgba(79,70,229,0.9);
+  box-shadow: 0 3px 12px rgba(79, 70, 229, 0.9);
 }

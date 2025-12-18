@@ -256,15 +256,23 @@ def generate_with_gemini_edit(user_image_path, garment_paths, prompt, filename):
 # 1) welcome (처음 화면)
 # -----------------------------
 @app.route("/")
-def welcome():
+def root():
+    return redirect(url_for("welcome_page"))
+
+
+# -----------------------------
+# 1) welcome (처음 화면)
+# -----------------------------
+@app.route("/welcome")
+def welcome_page():
     return render_template("welcome.html")
 
 
 # -----------------------------
 # 2) index
 # -----------------------------
-@app.route("/start")
-def start_page():
+@app.route("/nfc")
+def nfc_page():
     return render_template("nfc.html")
 
 
@@ -411,8 +419,21 @@ def tryon():
     if not result_path:
         return jsonify({"error": "Gemini 합성 실패"}), 500
 
-    result_url = "/" + result_path.replace("\\", "/")
-    return jsonify({"result": result_url, "engine": "gemini"})
+    # ✅ (수정 포인트 1) 결과 이미지 URL을 Flask 정석으로 생성
+    # result_path: "static/results/xxx.png" -> static 경로로 접근할 URL 생성
+    result_image_url = url_for("static", filename=f"results/{result_filename}")
+
+    # ✅ (수정 포인트 2) result 페이지로 이동할 URL도 같이 내려줌
+    # /result?image=/static/results/xxx.png 형태
+    result_page_url = url_for("result_page", image=result_image_url)
+
+    # ✅ 기존 프론트 호환을 위해 result 필드는 그대로 유지(이미지 URL)
+    return jsonify({
+        "result": result_image_url,
+        "result_page": result_page_url,
+        "engine": "gemini",
+        "mode": mode,
+    })
 
 
 # -----------------------------
@@ -420,11 +441,10 @@ def tryon():
 # -----------------------------
 @app.route("/result")
 def result_page():
-    image_path = request.args.get("image")
-    if not image_path:
+    image = request.args.get("image")
+    if not image:
         return "이미지가 없습니다.", 404
-    return render_template("result.html", result_image=image_path)
-
+    return render_template("result.html", image=image)
 
 # -----------------------------
 # ✅ NFC 진입: /m/product/<product_id>
@@ -538,6 +558,7 @@ def get_session_info(session_id):
     -> clickedProducts 배열 반환
     """
     session = Session.query.get(session_id)
+
     if session is None:
         return jsonify({"status": "error", "message": "session not found"}), 404
 
@@ -692,7 +713,7 @@ def debug_current_session():
         logs = (
             ScanLog.query
             .filter_by(session_id=session_id)
-           .order_by(ScanLog.id.desc())   # ✅ created_at 대신 id 기준 내림차순
+            .order_by(ScanLog.id.desc())   # ✅ created_at 대신 id 기준 내림차순
             .all()
         )
 

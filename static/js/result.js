@@ -1,39 +1,39 @@
-const btnBack = document.getElementById("btnBack");
+/* result.js
+   Result 페이지 전용 로직
+   - 셀렉 화면으로 돌아가기 버튼만 담당
+   - 중앙 합성 결과 영역(#resultArea)에 결과 이미지 표시
+   - 킵시트 관련 로직은 keep_sheet.js가 전부 처리
+*/
 
-btnBack.addEventListener("click", () => {
-  // TODO: 실제 셀렉 화면 파일 이름/경로로 수정
-  // 예: select.html, select_screen.html 등
-  window.location.href = "select.html";
-});
+(function () {
+  // ✅ 중앙 결과 이미지 주입 (새 칸 생성 X: 기존 resultArea에 img만 삽입)
+  const resultArea = document.getElementById("resultArea");
+  if (resultArea) {
+    const params = new URLSearchParams(window.location.search);
+    const image = params.get("image");
 
-// ───── 킵 패널 동작 (열기/닫기만) ─────
-const edgePanel   = document.getElementById("edgePanel");
-const edgeHandle  = document.getElementById("edgeHandle");
-const panelList   = document.getElementById("panelList");
-const panelCount  = document.getElementById("panelCount");
-const panelCloseButton = document.getElementById("panelCloseButton");
-const feedingButton    = document.getElementById("feedingButton");
-
-function updateCount() {
-  const count = panelList.querySelectorAll(".panel-item").length;
-  panelCount.textContent = count + "개";
-}
-
-edgeHandle.addEventListener("click", () => {
-  const isOpen = edgePanel.classList.toggle("open");
-  edgeHandle.classList.toggle("open", isOpen);
-});
-
-panelCloseButton.addEventListener("click", () => {
-  edgePanel.classList.remove("open");
-  edgeHandle.classList.remove("open");
-});
-
-feedingButton.addEventListener("click", () => {
-  const count = panelList.querySelectorAll(".panel-item").length;
-  if (count === 0) {
-    alert("먼저 셀렉 화면에서 룩을 킵해 주세요.");
-    return;
+    if (image) {
+      let img = document.getElementById("resultImg");
+      if (!img) {
+        img = document.createElement("img");
+        img.id = "resultImg";
+        img.alt = "피팅 결과";
+        img.style.width = "100%";
+        img.style.height = "100%";
+        img.style.objectFit = "cover";
+        resultArea.appendChild(img);
+      }
+      // ✅ (수정) 이미지가 있든 없든 무조건 보이게 설정
+      img.style.display = "block";
+      img.src = image;
+    }
   }
-  alert("여기서 선택한 룩을 기반으로 다른 결과를 보여주는 기능을 연결하면 됩니다.");
-});
+
+  const btnBack = document.getElementById("btnBack");
+  if (!btnBack) return;
+
+  btnBack.addEventListener("click", () => {
+    // 실제 Select 페이지 경로에 맞게 수정 가능
+    window.location.href = "select";
+  });
+})();

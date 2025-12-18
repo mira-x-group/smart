@@ -1,91 +1,90 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
   <meta charset="UTF-8" />
   <title>Smart Mirror - Select Screen (Vertical)</title>
+
   <link rel="stylesheet" href="{{ url_for('static', filename='css/select.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/keep_sheet.css') }}">
+
+  <!-- ✅ 캡쳐 사진을 "배경"으로 깔기 (칸 생성 X) -->
+  <style>
+    .mirror-container {
+      background-image: linear-gradient(to bottom,
+        rgba(2, 6, 23, 0.35),
+        rgba(2, 6, 23, 0.55)),
+      url("{{ url_for('static', filename='user.jpg') }}");
+      background-size: cover;
+      background-position: center top;
+      background-repeat: no-repeat;
+    }
+  </style>
 </head>
+
 <body>
   <div class="mirror-frame">
     <div class="mirror-container">
       <div class="main-content">
-        
-        <div class="title-area" style="position: relative; z-index: 10;">TODAY'S LOOK</div>
-        <div class="subtitle" style="position: relative; z-index: 10;">
+        <div class="title-area">TODAY'S LOOK</div>
+        <div class="subtitle">
           하단에서 룩을 선택해 오른쪽에 킵해 두고, 피팅 단계에서 하나씩 비교해 보세요.
         </div>
-
-        <div class="captured-photo-wrapper" style="
-            position: absolute;
-            top: 0;              /* 화면 맨 위부터 시작 */
-            bottom: 230px;       /* 하단 썸네일 위까지 영역 확보 */
-            left: 0;
-            width: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 0;          /* 텍스트(10)보다 낮은 숫자라 뒤로 감 */
-            pointer-events: none;
-            overflow: hidden;
-        ">
-            <img id="capturedPhoto" src="" alt="촬영된 사진" style="
-                width: 100%;
-                height: 100%;
-                object-fit: cover;   /* 비율 유지하며 꽉 채움 */
-                border-radius: 0 0 12px 12px;
-                display: none;
-            ">
-        </div>
       </div>
 
-      <div class="strip-actions" style="
-          position: absolute;
-          bottom: 250px;
-          right: 30px;
-          z-index: 20;        /* 텍스트(10)보다 더 위에 */
-          text-align: right;
-          width: auto;
-      ">
-        <button class="btn-tryon" id="tryOnButton" type="button" style="
-            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
-        ">착용하기</button>
+      <!-- 썸네일 위 착용하기 버튼 -->
+      <div class="strip-actions">
+        <button class="btn-tryon" id="tryOnButton" type="button">착용하기</button>
       </div>
 
-      <!-- ✅ 수정: cloth-number를 cloth-image-wrapper 밖으로 이동 -->
+      <!-- 썸네일 2줄 × 4칸 -->
       <div class="clothes-strip" id="clothesStrip">
         <div class="cloth-item" data-name="LOOK 1">
-          <div class="cloth-image-wrapper"></div>
-          <div class="cloth-number">1</div>
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">1</div>
+          </div>
           <button class="cloth-fav" type="button">♡</button>
         </div>
-
         <div class="cloth-item" data-name="LOOK 2">
-          <div class="cloth-image-wrapper"></div>
-          <div class="cloth-number">2</div>
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">2</div>
+          </div>
           <button class="cloth-fav" type="button">♡</button>
         </div>
-
         <div class="cloth-item" data-name="LOOK 3">
-          <div class="cloth-image-wrapper"></div>
-          <div class="cloth-number">3</div>
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">3</div>
+          </div>
           <button class="cloth-fav" type="button">♡</button>
         </div>
-
         <div class="cloth-item" data-name="LOOK 4">
-          <div class="cloth-image-wrapper"></div>
-          <div class="cloth-number">4</div>
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">4</div>
+          </div>
           <button class="cloth-fav" type="button">♡</button>
         </div>
-
         <div class="cloth-item" data-name="LOOK 5">
-          <div class="cloth-image-wrapper"></div>
-          <div class="cloth-number">5</div>
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">5</div>
+          </div>
           <button class="cloth-fav" type="button">♡</button>
         </div>
-
         <div class="cloth-item" data-name="LOOK 6">
-          <div class="cloth-image-wrapper"></div>
-          <div class="cloth-number">6</div>
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">6</div>
+          </div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+        <div class="cloth-item" data-name="LOOK 7">
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">7</div>
+          </div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+        <div class="cloth-item" data-name="LOOK 8">
+          <div class="cloth-image-wrapper">
+            <div class="cloth-number">8</div>
+          </div>
           <button class="cloth-fav" type="button">♡</button>
         </div>
       </div>
@@ -102,89 +101,37 @@
             <button class="panel-close" id="panelCloseButton">‹</button>
           </div>
         </div>
+
         <div class="panel-list" id="panelList"></div>
 
-        <div class="panel-footer-actions">
-          <div class="room-actions">
-            <button class="btn-room-status" id="roomStatusButton" type="button">피팅룸 현황</button>
-            <button class="btn-pickup-request" id="pickupButton" type="button">픽업 요청</button>
-          </div>
+        <div class="panel-footer">
+          <button class="btn-keep" type="button">KEEP</button>
+          <div class="keep-desc">가상피팅을 종료하고<br>직원이 제품을 준비해드립니다</div>
         </div>
       </div>
 
-      <div class="preview-overlay" id="previewOverlay">
-        <div class="preview-card" id="previewCard">
-          <div>
-            <div class="preview-title">LOOK PREVIEW</div>
-            <div class="preview-look-name" id="previewLookName">LOOK</div>
-          </div>
-          <div class="preview-image-area" id="previewImageArea"></div>
-          <div class="preview-buttons">
-            <button class="btn-preview-cancel" type="button" id="previewCancelBtn">취소</button>
-            <button class="btn-preview-select" type="button" id="previewSelectBtn">선택</button>
-          </div>
-        </div>
-      </div>
 
-      <div class="pickup-overlay" id="pickupOverlay">
-        <div class="pickup-card" id="pickupCard">
-          <div class="pickup-title-row">
-            <div>
-              <div class="pickup-title">FITTING ROOM STATUS</div>
-              <div class="pickup-subtitle">피팅룸 현황 및 픽업 예약 안내</div>
-            </div>
-            <button class="pickup-close" id="pickupClose" type="button">×</button>
-          </div>
-
-          <div class="room-grid">
-            <div class="room-box reserved">
-              <div class="room-box-title">ROOM 1</div>
-              <div class="room-box-status">예약됨</div>
-            </div>
-            <div class="room-box reserved">
-              <div class="room-box-title">ROOM 2</div>
-              <div class="room-box-status">예약됨</div>
-            </div>
-            <div class="room-box">
-              <div class="room-box-title">ROOM 3</div>
-              <div class="room-box-status">비어 있음</div>
-            </div>
-            <div class="room-box">
-              <div class="room-box-title">ROOM 4</div>
-              <div class="room-box-status">비어 있음</div>
-            </div>
-          </div>
-
-          <div class="room-status-list">
-            <div>· ROOM 1 — 14:30 ~ 14:50 예약 (김**)</div>
-            <div>· ROOM 2 — 15:00 ~ 15:20 예약 (이**)</div>
-            <div>· ROOM 3 — 예약 없음 (즉시 사용 가능)</div>
-            <div>· ROOM 4 — 예약 없음 (즉시 사용 가능)</div>
-          </div>
-        </div>
-      </div>
 
     </div>
   </div>
 
+  <script src="{{ url_for('static', filename='js/keep_sheet.js') }}"></script>
   <script src="{{ url_for('static', filename='js/select.js') }}"></script>
+  <!-- ✅ STT (Must be loaded after select.js) -->
+  <script src="{{ url_for('static', filename='js/select_stt.js') }}"></script>
 
+  <!-- ✅ 캐시 방지 -->
   <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      // 1. capture 페이지에서 저장한 사진 데이터 가져오기
-      const photoData = localStorage.getItem("capturedPhoto");
-      
-      // 2. 사진을 넣을 이미지 태그 찾기
-      const targetImage = document.getElementById("capturedPhoto");
+    (function () {
+      const container = document.querySelector(".mirror-container");
+      if (!container) return;
 
-      // 3. 데이터가 있으면 이미지 표시
-      if (photoData && targetImage) {
-        targetImage.src = photoData;
-        targetImage.style.display = "block"; // 숨겨뒀던 이미지를 보이게 함
-      } else {
-        console.log("저장된 사진이 없습니다.");
-      }
-    });
+      const base = "{{ url_for('static', filename='user.jpg') }}";
+      container.style.backgroundImage =
+        `linear-gradient(to bottom, rgba(2, 6, 23, 0.35), rgba(2, 6, 23, 0.55)),
+         url("${base}?t=${Date.now()}")`;
+    })();
   </script>
 </body>
+
 </html>

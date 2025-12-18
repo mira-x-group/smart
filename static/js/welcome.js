@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", () => {
     document.body.addEventListener("click", () => {
-        window.location.href = "/start";
+        window.location.href = "/nfc";
     });
 });

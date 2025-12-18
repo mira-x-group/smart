@@ -1,3 +1,5 @@
+/* select.css */
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -33,13 +35,11 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    to bottom right,
-    rgba(255, 255, 255, 0.12),
-    transparent 30%,
-    transparent 70%,
-    rgba(15, 23, 42, 0.6)
-  );
+  background: linear-gradient(to bottom right,
+      rgba(255, 255, 255, 0.12),
+      transparent 30%,
+      transparent 70%,
+      rgba(15, 23, 42, 0.6));
   pointer-events: none;
   mix-blend-mode: screen;
 }
@@ -83,7 +83,7 @@ body {
   position: absolute;
   left: 24px;
   right: 24px;
-  bottom: calc(32% + 32px); /* 썸네일 영역 바로 위 느낌 */
+  bottom: calc(32% + 32px);
   display: flex;
   justify-content: flex-start;
   pointer-events: none;
@@ -114,51 +114,29 @@ body {
   bottom: 0;
   width: 100%;
   height: 32%;
-  padding: 12px 24px 28px; /* 숫자(하단 라벨) 공간 확보 */
-  background: linear-gradient(
-    to top,
-    rgba(15, 23, 42, 0.9),
-    rgba(15, 23, 42, 0.55),
-    rgba(15, 23, 42, 0.2)
-  );
+  padding: 12px 24px 20px;
+  background: linear-gradient(to top,
+      rgba(15, 23, 42, 0.9),
+      rgba(15, 23, 42, 0.55),
+      rgba(15, 23, 42, 0.2));
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-top: 1px solid rgba(148, 163, 184, 0.5);
   box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.4);
 
   display: grid;
-
-  /* 3열 */
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-
-  /* ✅ 수정: auto → 1fr (행이 내용 때문에 커지는 현상 방지) */
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   grid-template-rows: repeat(2, 1fr);
-
-  align-content: center;
-  justify-content: center;
-  justify-items: center;
-
-  gap: 25px 12px;
+  gap: 8px 12px;
   align-items: stretch;
-
-  overflow: visible; /* 슬롯 아래로 내려가는 숫자 잘림 방지 */
-}
-
-/* ✅ 3개/3개(총 6개)만 보이게: 7,8번 숨김 (크기 변경 아님) */
-.clothes-strip .cloth-item:nth-child(n+7) {
-  display: none;
 }
 
 .cloth-item {
   position: relative;
-
-  /* ✅ 수정: 슬롯 폭 축소 */
-  width: 60%;
-  height: auto;
-  aspect-ratio: 3 / 4;
-
+  width: 100%;
+  height: 100%;
   border-radius: 12px;
-  background: radial-gradient(circle at top, rgba(255,255,255,0.18), rgba(15,23,42,0.85));
+  background: radial-gradient(circle at top, rgba(255, 255, 255, 0.18), rgba(15, 23, 42, 0.85));
   border: 1px solid rgba(148, 163, 184, 0.6);
   display: flex;
   align-items: center;
@@ -169,10 +147,7 @@ body {
     box-shadow 0.18s ease,
     border-color 0.18s ease,
     background 0.18s ease;
-
-  /* ✅ 수정: padding-bottom 제거 (이게 카드 커보이게 만들었음) */
-  overflow: visible;
-
+  overflow: hidden;
   cursor: pointer;
 }
 
@@ -180,12 +155,12 @@ body {
   transform: translateY(-3px);
   box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
   border-color: rgba(129, 140, 248, 0.95);
-  background: radial-gradient(circle at top, rgba(248,250,252,0.25), rgba(15,23,42,0.9));
+  background: radial-gradient(circle at top, rgba(248, 250, 252, 0.25), rgba(15, 23, 42, 0.9));
 }
 
 .cloth-item.selected {
   border-color: rgba(129, 140, 248, 1);
-  background: radial-gradient(circle at top, rgba(129,140,248,0.35), rgba(15,23,42,0.95));
+  background: radial-gradient(circle at top, rgba(129, 140, 248, 0.35), rgba(15, 23, 42, 0.95));
   box-shadow:
     0 0 0 1px rgba(191, 219, 254, 0.8),
     0 10px 26px rgba(15, 23, 42, 1);
@@ -195,7 +170,7 @@ body {
   content: "";
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at top, rgba(129,140,248,0.28), transparent 60%);
+  background: radial-gradient(circle at top, rgba(129, 140, 248, 0.28), transparent 60%);
   mix-blend-mode: screen;
   pointer-events: none;
 }
@@ -220,16 +195,10 @@ body {
 }
 
 .cloth-number {
-  /* 슬롯 바깥 하단 중앙 */
-  position: absolute;
-  left: 50%;
-  bottom: -22px;
-  transform: translateX(-50%);
   font-size: 14px;
   font-weight: 500;
   color: #e5e7eb;
   opacity: 0.9;
-  pointer-events: none;
 }
 
 .cloth-fav {
@@ -269,488 +238,124 @@ body {
   box-shadow: 0 4px 12px rgba(244, 114, 182, 0.8);
 }
 
-/* 🔹 패널 핸들 */
-.edge-handle {
-  position: absolute;
-  top: 41%;
-  right: 0;
-  transform: translateY(-50%);
-  width: 12px;
-  height: 110px;
-  background: linear-gradient(to bottom, #4f46e5, #a855f7);
-  border-radius: 8px 0 0 8px;
-  box-shadow:
-    -1px 0 0 rgba(191, 219, 254, 0.6),
-    -6px 0 18px rgba(79, 70, 229, 0.75);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 3;
-  transition: right 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
-}
-
-.edge-handle.open {
-  right: 75%;
-  transform: translate(calc(100% + 4px), -50%) scaleX(-1);
-  box-shadow:
-    -1px 0 0 rgba(191, 219, 254, 0.75),
-    -2px 0 12px rgba(79, 70, 229, 0.9);
-}
-
-.edge-handle::before {
-  content: "";
-  width: 3px;
-  height: 42%;
-  border-radius: 999px;
-  background: rgba(248, 250, 252, 0.9);
-}
-
-/* 🔹 패널 – 가로 75% */
-.edge-panel {
-  position: absolute;
-  top: 41%;
-  right: 0;
-  transform: translate(100%, -50%);
-  width: 75%;
-  height: 50%;
-  background: radial-gradient(circle at top, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.96));
-  box-shadow:
-    -1px 0 0 rgba(148, 163, 184, 0.6),
-    -18px 0 40px rgba(15, 23, 42, 0.95);
-  border-radius: 18px 0 0 18px;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  padding: 16px 16px 16px;
-  z-index: 2;
-  pointer-events: none;
-  opacity: 0;
-  transition: transform 0.25s ease, opacity 0.25s ease;
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-.edge-panel.open {
-  transform: translate(0, -50%);
-  pointer-events: auto;
-  opacity: 1;
-}
-
-.panel-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-  gap: 6px;
-}
-
-.panel-title-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.panel-title {
-  font-size: 14px;
-  font-weight: 500;
-  color: #e5e7eb;
-  letter-spacing: 0.04em;
-}
-
-.panel-header-right {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.panel-count {
-  font-size: 11px;
-  color: #cbd5f5;
-}
-
-.panel-close {
-  width: 20px;
-  height: 20px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(15, 23, 42, 0.8);
-  color: #e5e7eb;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.9);
-}
-
-.panel-close:hover {
-  background: rgba(30, 64, 175, 0.9);
-}
-
-.panel-list {
-  flex: 1;
-  overflow-y: auto;
-  padding-right: 4px;
-  margin-bottom: 8px;
-}
-
-.panel-list::-webkit-scrollbar {
-  width: 4px;
-}
-
-.panel-list::-webkit-scrollbar-thumb {
-  border-radius: 99px;
-  background: rgba(148, 163, 184, 0.7);
-}
-
-.panel-item {
-  position: relative;
-  border-radius: 12px;
-  border: 1px solid rgba(148, 163, 184, 0.6);
-  padding: 4px;
-  margin-bottom: 8px;
-  background: linear-gradient(
-    to right,
-    rgba(15, 23, 42, 0.9),
-    rgba(30, 64, 175, 0.6)
-  );
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.9);
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.panel-item-image-wrapper {
-  width: 56px;
-  height: 56px;
-  border-radius: 10px;
-  overflow: hidden;
-  background: #0b1120;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.panel-item-image-wrapper img {
-  max-width: 100%;
-  max-height: 100%;
-  object-fit: cover;
-}
-
-.panel-item-text {
-  flex: 1;
-  font-size: 11px;
-  color: #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.panel-item-name {
-  font-weight: 500;
-}
-
-.panel-item-meta {
-  font-size: 10px;
-  color: #9ca3af;
-}
-
-.panel-item-remove {
-  position: absolute;
-  top: 4px;
-  right: 4px;
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: #ef4444;
-  border: none;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  font-size: 11px;
-  cursor: pointer;
-  box-shadow: 0 2px 4px rgba(185, 28, 28, 0.6);
-}
-
-.panel-item-remove:hover {
-  background: #dc2626;
-}
-
-/* 킵 패널 하단 버튼 영역 */
-.panel-footer-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-.room-actions {
-  display: flex;
-  gap: 8px;
-}
-
-.room-actions button {
-  flex: 1;
-  border-radius: 999px;
-  border: none;
-  padding: 8px 10px;
-  font-size: 12px;
-  cursor: pointer;
-  white-space: nowrap;
-}
-
-/* 피팅룸 현황 / 픽업 요청 컬러 – 다른 화면과 동일 보라/핑크 그라데이션 */
-.btn-room-status,
-.btn-pickup-request {
-  background: linear-gradient(to right, #6366f1, #a855f7);
-  color: #f9fafb;
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.85);
-}
-
-.btn-room-status:active,
-.btn-pickup-request:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 10px rgba(55, 48, 163, 0.8);
-}
-
-.preview-overlay {
+/* =========================================
+   Dynamic Popup Preview (New Interaction)
+   ========================================= */
+.popup-preview-overlay {
   position: absolute;
   inset: 0;
-  background: radial-gradient(circle at center, rgba(15,23,42,0.9), rgba(15,23,42,0.95));
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.4), rgba(15, 23, 42, 0.6));
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
   pointer-events: none;
-  transition: opacity 0.25s ease;
-  z-index: 5;
+  /* 클릭 통과 (배경 클릭 무시 위해) or auto? -> "빠른 연타" 위해 여기선 none이 나을수도 있으나 click blocking 필요? 
+                         요구사항: "팝업 표시 중 다른 아이템 클릭 시... 교체". 
+                         따라서 오버레이가 클릭을 막으면 안됨. pointer-events: none; */
+  pointer-events: none;
+  z-index: 50;
+  transition: opacity 0.2s ease;
 }
 
-.preview-overlay.visible {
+.popup-preview-overlay.visible {
   opacity: 1;
-  pointer-events: auto;
 }
 
-.preview-card {
-  width: 64%;
-  max-width: 480px;
-  border-radius: 18px;
-  background: radial-gradient(circle at top, rgba(31,41,55,0.9), rgba(15,23,42,0.98));
-  border: 1px solid rgba(148,163,184,0.8);
+.popup-preview-overlay.exiting {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.popup-preview-card {
+  width: 60%;
+  max-width: 420px;
+  border-radius: 20px;
+  background: radial-gradient(circle at top, rgba(30, 41, 59, 0.95), rgba(15, 23, 42, 0.98));
+  border: 1px solid rgba(148, 163, 184, 0.3);
   box-shadow:
-    0 18px 45px rgba(0,0,0,0.85),
-    0 0 0 1px rgba(15,23,42,0.8);
-  padding: 18px 20px 16px;
+    0 20px 50px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+  padding: 24px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  animation: previewIn 0.25s ease-out;
+  align-items: center;
+  gap: 12px;
+
+  /* Animation Entry */
+  animation: popupEnter 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
-@keyframes previewIn {
-  from {
-    transform: translateY(20px) scale(0.94);
+/* Animation Exit */
+.popup-preview-card.exiting {
+  animation: popupExit 0.3s ease-in-out forwards;
+}
+
+@keyframes popupEnter {
+  0% {
+    transform: scale(0.92);
     opacity: 0;
   }
-  to {
-    transform: translateY(0) scale(1);
+
+  100% {
+    transform: scale(1);
     opacity: 1;
   }
 }
 
-.preview-title {
-  font-size: 13px;
-  letter-spacing: 0.08em;
+@keyframes popupExit {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+
+  100% {
+    transform: scale(1.04);
+    opacity: 0;
+  }
+}
+
+.popup-preview-card .preview-title {
+  font-size: 12px;
   text-transform: uppercase;
-  color: #9ca3af;
+  letter-spacing: 0.08em;
+  color: #94a3b8;
+  margin-bottom: 2px;
+  text-align: center;
 }
 
-.preview-look-name {
-  font-size: 16px;
-  font-weight: 500;
-  color: #f9fafb;
-  margin-top: 2px;
+.popup-preview-card .preview-look-name {
+  font-size: 20px;
+  font-weight: 700;
+  color: #f8fafc;
+  text-align: center;
 }
 
-.preview-image-area {
-  margin-top: 8px;
+.popup-preview-card .preview-image-area {
+  width: 100%;
   border-radius: 14px;
   overflow: hidden;
-  background: #020617;
+  background: #0f172a;
   display: flex;
-  align-items: center;
   justify-content: center;
-}
-
-.preview-image-area .cloth-image-wrapper {
-  max-width: 70%;
-}
-
-.preview-buttons {
-  margin-top: 10px;
-  display: flex;
-  gap: 10px;
-}
-
-.preview-buttons button {
-  flex: 1;
-  border-radius: 999px;
-  border: none;
-  padding: 9px 12px;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-.btn-preview-cancel {
-  background: #111827;
-  color: #e5e7eb;
-  box-shadow: 0 3px 10px rgba(0,0,0,0.6);
-}
-
-.btn-preview-cancel:hover {
-  background: #020617;
-}
-
-.btn-preview-select {
-  background: linear-gradient(to right, #6366f1, #a855f7);
-  color: #f9fafb;
-  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.9);
-}
-
-.btn-preview-select:active {
-  transform: translateY(1px);
-  box-shadow: 0 2px 10px rgba(55, 48, 163, 0.8);
-}
-
-/* 픽업 요청 / 피팅룸 현황 오버레이 */
-.pickup-overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(15,23,42,0.88), rgba(15,23,42,0.96));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity 0.25s ease;
-  z-index: 6;
-}
-
-.pickup-overlay.visible {
-  opacity: 1;
-  pointer-events: auto;
-}
-
-.pickup-card {
-  width: 70%;
-  max-width: 520px;
-  border-radius: 18px;
-  background: radial-gradient(circle at top, rgba(31,41,55,0.95), rgba(15,23,42,0.98));
-  border: 1px solid rgba(148,163,184,0.9);
-  box-shadow:
-    0 18px 45px rgba(0,0,0,0.9),
-    0 0 0 1px rgba(15,23,42,0.9);
-  padding: 16px 18px 14px;
-  color: #e5e7eb;
-  position: relative;
-}
-
-.pickup-title-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
   margin-bottom: 8px;
 }
 
-.pickup-title {
-  font-size: 13px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: #9ca3af;
+.popup-preview-card .preview-image-area .cloth-image-wrapper {
+  max-width: 65%;
+  /* 적당한 크기 */
+  aspect-ratio: 3 / 4;
 }
 
-.pickup-subtitle {
-  font-size: 12px;
-  color: #d1d5db;
-}
-
-.pickup-close {
-  width: 22px;
-  height: 22px;
-  border-radius: 999px;
-  border: none;
-  background: rgba(15,23,42,0.9);
-  color: #e5e7eb;
-  font-size: 13px;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.9);
-}
-
-.pickup-close:hover {
-  background: rgba(30,64,175,0.95);
-}
-
-.room-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0,1fr));
-  gap: 8px;
-  margin-top: 10px;
-  margin-bottom: 10px;
-}
-
-.room-box {
-  border-radius: 12px;
-  border: 1px solid rgba(148,163,184,0.7);
-  padding: 8px 6px;
-  text-align: center;
-  font-size: 11px;
-  background: rgba(15,23,42,0.9);
-  color: #e5e7eb;
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  justify-content: center;
-}
-
-.room-box-title {
-  font-weight: 500;
-}
-
-.room-box-status {
-  font-size: 10px;
-  color: #9ca3af;
-}
-
-.room-box.reserved {
-  background: linear-gradient(to bottom right, rgba(52,211,153,0.3), rgba(16,185,129,0.85));
-  border-color: rgba(16,185,129,0.95);
-  box-shadow: 0 8px 18px rgba(16,185,129,0.7);
-  color: #ecfdf5;
-}
-
-.room-status-list {
-  font-size: 11px;
-  color: #d1d5db;
-  border-top: 1px dashed rgba(148,163,184,0.7);
-  padding-top: 8px;
+.popup-preview-card .preview-status {
+  font-size: 15px;
+  font-weight: 600;
+  background: linear-gradient(to right, #818cf8, #c084fc);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-top: 4px;
-}
-
-.room-status-list div {
-  margin-bottom: 2px;
-}
-
-/* 버튼 눌렀을 때 색 채워지는 공통 효과 */
-button.pressed {
-  box-shadow:
-    0 0 0 1px rgba(249,250,251,0.9),
-    0 4px 16px rgba(15,23,42,0.9);
-  filter: brightness(1.1);
 }
 
 @media (max-width: 500px) {
@@ -758,24 +363,15 @@ button.pressed {
     height: 100vh;
     border-radius: 0;
   }
+
   .main-content {
     padding: 24px 18px 110px;
   }
-  .edge-panel {
-    width: 90%;
-  }
-  .edge-handle.open {
-    right: 90%;
-  }
+
   .preview-card {
     width: 82%;
   }
-  .pickup-card {
-    width: 86%;
-  }
-  .room-grid {
-    grid-template-columns: repeat(2, minmax(0,1fr));
-  }
+
   .strip-actions {
     left: 18px;
     right: 18px;
