@@ -1,9 +1,11 @@
-{# templates/debug_session.html #}
-{% extends "base.html" %}
-
-{% block title %}세션 디버그{% endblock %}
-
-{% block content %}
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>세션 디버그</title>
+</head>
+<body>
 <div style="max-width: 800px; margin: 24px auto; padding: 16px;">
   <h1 style="margin-bottom: 16px;">세션 디버그</h1>
 
@@ -95,4 +97,5 @@
     <a href="{{ url_for('welcome') }}">← 처음 화면으로</a>
   </div>
 </div>
-{% endblock %}
+</body>
+</html>

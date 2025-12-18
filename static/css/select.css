@@ -1,251 +1,817 @@
-:root {
-    --ease: cubic-bezier(.2,.9,.3,1);
-    --glass-bg: rgba(255,255,255,0.08);
-    --glass-border: rgba(255,255,255,0.25);
-    --glass-shadow:
-        0 0 12px rgba(255,255,255,0.25),
-        0 0 24px rgba(255,255,255,0.18),
-        inset 0 0 6px rgba(255,255,255,0.25);
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
 }
-
-* { box-sizing: border-box; }
 
 body {
-    width:100vw;
-    height:100vh;
-    display:flex;
-    flex-direction:column;
-    background:#000;
-    font-family:"Noto Sans",sans-serif;
-    color:white;
+  font-family: -apple-system, BlinkMacSystemFont, "Noto Sans KR", sans-serif;
+  background: radial-gradient(circle at top, #111827, #020617);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-.tryon-btn {
-    position:absolute;
-    top:70%;
-    transform:translateY(-110%);
-    right:14px;
-    padding:10px 26px;
-    font-size:18px;
-    font-weight:700;
-    border-radius:40px;
-    border:1px solid rgba(255,255,255,0.45);
-    background:rgba(255,255,255,0.10);
-    backdrop-filter:blur(12px);
-    -webkit-backdrop-filter:blur(12px);
-    color:white;
-    cursor:pointer;
-    box-shadow:
-        0 0 18px rgba(255,255,255,0.45),
-        0 0 32px rgba(255,255,255,0.22),
-        inset 0 0 8px rgba(255,255,255,0.25);
-    transition:
-        transform .18s ease,
-        box-shadow .25s ease;
+.mirror-frame {
+  aspect-ratio: 9 / 16;
+  height: 96vh;
+  max-height: 96vh;
+  border-radius: 14px;
+  overflow: hidden;
+  position: relative;
+  background: radial-gradient(circle at top, rgba(248, 250, 252, 0.16), rgba(15, 23, 42, 0.92));
+  box-shadow:
+    0 0 0 1px rgba(148, 163, 184, 0.5),
+    0 25px 60px rgba(0, 0, 0, 0.85);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
 }
 
-.tryon-btn:active {
-    transform:translateY(-110%) scale(.95);
-    box-shadow:
-        0 0 24px rgba(255,255,255,0.65),
-        0 0 44px rgba(255,255,255,0.32),
-        inset 0 0 12px rgba(255,255,255,0.32);
+.mirror-frame::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom right,
+    rgba(255, 255, 255, 0.12),
+    transparent 30%,
+    transparent 70%,
+    rgba(15, 23, 42, 0.6)
+  );
+  pointer-events: none;
+  mix-blend-mode: screen;
 }
 
-.top-photo-area {
-    height:70%;
-    background:#000;
-    background-size:cover;
-    background-position:center;
-    background-repeat:no-repeat;
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    border-bottom:1px solid rgba(255,255,255,0.10);
-    box-shadow:
-        0 0 35px rgba(255,255,255,0.35),
-        0 0 70px rgba(255,255,255,0.18),
-        0 0 120px rgba(255,255,255,0.12);
+.mirror-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
 }
 
-.clothes-row {
-    height:15%;
-    background:rgba(255,255,255,0.03);
-    backdrop-filter:blur(10px);
-    -webkit-backdrop-filter:blur(10px);
-    border-top:1px solid rgba(255,255,255,0.45);
-    border-bottom:1px solid rgba(255,255,255,0.30);
-    box-shadow:
-        0 -2px 10px rgba(255,255,255,0.20),
-        0 -4px 18px rgba(255,255,255,0.12),
-        inset 0 1px 6px rgba(255,255,255,0.15);
-    display:flex;
-    align-items:center;
-    padding:0 12px;
+.main-content {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  padding: 28px 28px 120px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  pointer-events: none;
 }
 
-.row-title {
-    width:70px;
-    min-width:70px;
-    font-size:18px;
-    font-weight:700;
-    color:rgba(255,255,255,0.88);
-    text-shadow:0 0 6px rgba(255,255,255,0.35);
+.title-area {
+  font-size: 20px;
+  font-weight: 500;
+  margin-bottom: 8px;
+  color: #e5e7eb;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
-.horizontal-scroll {
-    flex:1;
-    display:flex;
-    justify-content:center;
-    flex-wrap:nowrap;
-    align-items:center;
-    overflow-x:auto;
-    overflow-y:hidden;
-    padding:10px 10px;
-    scroll-behavior: smooth;
-    mask-image: linear-gradient(
-        to right,
-        transparent 0%,
-        black 12%,
-        black 88%,
-        transparent 100%
-    );
+.subtitle {
+  font-size: 12px;
+  color: #9ca3af;
+  max-width: 70%;
 }
 
-.horizontal-scroll::-webkit-scrollbar {
-    height:6px;
+/* 썸네일 위 착용하기 버튼 영역 */
+.strip-actions {
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  bottom: calc(32% + 32px); /* 썸네일 영역 바로 위 느낌 */
+  display: flex;
+  justify-content: flex-start;
+  pointer-events: none;
 }
 
-.horizontal-scroll::-webkit-scrollbar-track {
-    background:rgba(255,255,255,0.08);
-    border-radius:10px;
+.btn-tryon {
+  pointer-events: auto;
+  border-radius: 999px;
+  border: none;
+  padding: 8px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  color: #f9fafb;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.85);
 }
 
-.horizontal-scroll::-webkit-scrollbar-thumb {
-    background:rgba(255,255,255,0.35);
-    border-radius:10px;
+.btn-tryon:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(55, 48, 163, 0.8);
 }
 
-.clothes-img {
-    height:95%;
-    max-height:150px;
-    margin-right:20px;
-    cursor:pointer;
-    border-radius:12px;
-    background:rgba(255,255,255,0.05);
-    padding:4px;
-    transition:
-        transform .25s var(--ease),
-        box-shadow .25s var(--ease),
-        opacity .25s var(--ease);
-    box-shadow:
-        0 0 8px rgba(255,255,255,0.25),
-        inset 0 0 10px rgba(255,255,255,0.15);
+/* 하단 썸네일 영역 */
+.clothes-strip {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 32%;
+  padding: 12px 24px 28px; /* 숫자(하단 라벨) 공간 확보 */
+  background: linear-gradient(
+    to top,
+    rgba(15, 23, 42, 0.9),
+    rgba(15, 23, 42, 0.55),
+    rgba(15, 23, 42, 0.2)
+  );
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.4);
+
+  display: grid;
+
+  /* 3열 */
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+
+  /* ✅ 수정: auto → 1fr (행이 내용 때문에 커지는 현상 방지) */
+  grid-template-rows: repeat(2, 1fr);
+
+  align-content: center;
+  justify-content: center;
+  justify-items: center;
+
+  gap: 25px 12px;
+  align-items: stretch;
+
+  overflow: visible; /* 슬롯 아래로 내려가는 숫자 잘림 방지 */
 }
 
-.clothes-img:hover {
-    transform:scale(1.08);
-    box-shadow:
-        0 0 16px rgba(255,255,255,0.45),
-        inset 0 0 16px rgba(255,255,255,0.25);
+/* ✅ 3개/3개(총 6개)만 보이게: 7,8번 숨김 (크기 변경 아님) */
+.clothes-strip .cloth-item:nth-child(n+7) {
+  display: none;
 }
 
-.clothes-img.selected {
-    transform:scale(1.12);
-    box-shadow:
-        0 0 20px rgba(74,127,255,0.75),
-        0 0 30px rgba(74,127,255,0.45),
-        inset 0 0 16px rgba(74,127,255,0.30);
-    outline:2px solid rgba(74,127,255,0.45);
+.cloth-item {
+  position: relative;
+
+  /* ✅ 수정: 슬롯 폭 축소 */
+  width: 60%;
+  height: auto;
+  aspect-ratio: 3 / 4;
+
+  border-radius: 12px;
+  background: radial-gradient(circle at top, rgba(255,255,255,0.18), rgba(15,23,42,0.85));
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.7);
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease,
+    background 0.18s ease;
+
+  /* ✅ 수정: padding-bottom 제거 (이게 카드 커보이게 만들었음) */
+  overflow: visible;
+
+  cursor: pointer;
 }
 
-.clothes-img.deal-from-center {
-    position:relative;
-    opacity:0;
-    z-index:10;
-    transition:
-        transform 800ms var(--ease),
-        opacity 400ms linear;
+.cloth-item:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.9);
+  border-color: rgba(129, 140, 248, 0.95);
+  background: radial-gradient(circle at top, rgba(248,250,252,0.25), rgba(15,23,42,0.9));
 }
 
-.clothes-img.dealt {
-    transform:translate(0,0) rotate(0deg) scale(1);
-    opacity:1;
-    z-index:1;
+.cloth-item.selected {
+  border-color: rgba(129, 140, 248, 1);
+  background: radial-gradient(circle at top, rgba(129,140,248,0.35), rgba(15,23,42,0.95));
+  box-shadow:
+    0 0 0 1px rgba(191, 219, 254, 0.8),
+    0 10px 26px rgba(15, 23, 42, 1);
 }
 
-@keyframes pop {
-    0% { transform:scale(1); }
-    50% { transform:scale(1.12); }
-    100% { transform:scale(1.08); }
+.cloth-item.selected::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at top, rgba(129,140,248,0.28), transparent 60%);
+  mix-blend-mode: screen;
+  pointer-events: none;
 }
 
-.modal-overlay {
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.6);
-    display:flex;
-    justify-content:center;
-    align-items:center;
-    z-index:3000;
-    backdrop-filter:blur(4px);
+/* 3:4 비율 썸네일 */
+.cloth-image-wrapper {
+  width: 100%;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #020617;
+  position: relative;
 }
 
-.modal-box {
-    background:rgba(0,0,0,0.55);
-    border:1px solid rgba(255,255,255,0.35);
-    border-radius:16px;
-    padding:22px;
-    width:85%;
-    max-width:380px;
-    box-shadow:
-        0 0 18px rgba(255,255,255,0.25),
-        inset 0 0 10px rgba(255,255,255,0.25);
-    animation:fadeIn .25s ease-out;
+.cloth-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
-.modal-img {
-    width:100%;
-    max-width:270px;
-    border-radius:12px;
-    margin-bottom:22px;
-    box-shadow:0 0 12px rgba(255,255,255,0.32);
+.cloth-number {
+  /* 슬롯 바깥 하단 중앙 */
+  position: absolute;
+  left: 50%;
+  bottom: -22px;
+  transform: translateX(-50%);
+  font-size: 14px;
+  font-weight: 500;
+  color: #e5e7eb;
+  opacity: 0.9;
+  pointer-events: none;
 }
 
-.modal-buttons {
-    width:100%;
-    display:flex;
-    justify-content:space-between;
-    gap:12px;
+.cloth-fav {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(248, 250, 252, 0.85);
+  background: rgba(15, 23, 42, 0.85);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 11px;
+  color: #e5e7eb;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.9);
+  transition:
+    background 0.2s ease,
+    transform 0.1s ease,
+    box-shadow 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease;
+  z-index: 2;
 }
 
-.modal-btn {
-    flex:1;
-    border:none;
-    border-radius:12px;
-    padding:12px 0;
-    font-size:17px;
-    font-weight:700;
-    cursor:pointer;
+.cloth-fav:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 1);
 }
 
-.cancel-btn {
-    background:rgba(255,255,255,0.18);
-    color:white;
+.cloth-fav.active {
+  background: #f472b6;
+  color: #0b1120;
+  border-color: #f9a8d4;
+  box-shadow: 0 4px 12px rgba(244, 114, 182, 0.8);
 }
 
-.select-btn {
-    background:#4a7fff;
-    color:white;
+/* 🔹 패널 핸들 */
+.edge-handle {
+  position: absolute;
+  top: 41%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 110px;
+  background: linear-gradient(to bottom, #4f46e5, #a855f7);
+  border-radius: 8px 0 0 8px;
+  box-shadow:
+    -1px 0 0 rgba(191, 219, 254, 0.6),
+    -6px 0 18px rgba(79, 70, 229, 0.75);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition: right 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
 }
 
-@keyframes fadeIn {
-    from {
-        opacity:0;
-        transform:scale(.92);
-    }
-    to {
-        opacity:1;
-        transform:scale(1);
-    }
+/* ✅ 수정(핵심): open 상태랑 bump 애니메이션 transform 충돌 방지 */
+/* 닫힌 상태에서만 handleBump 사용 */
+.edge-handle.bump:not(.open) {
+  animation: handleBump 0.36s ease-out;
+  box-shadow:
+    -1px 0 0 rgba(191, 219, 254, 0.8),
+    -10px 0 26px rgba(79, 70, 229, 0.95);
 }
+
+/* 열린 상태에서는 open 전용 bump 애니메이션 사용 */
+.edge-handle.open.bump {
+  animation: handleBumpOpen 0.36s ease-out;
+  box-shadow:
+    -1px 0 0 rgba(191, 219, 254, 0.8),
+    -10px 0 26px rgba(79, 70, 229, 0.95);
+}
+
+/* 닫힌 상태 bump */
+@keyframes handleBump {
+  0%   { transform: translateY(-50%) translateX(0); }
+  45%  { transform: translateY(-50%) translateX(-10px); }
+  100% { transform: translateY(-50%) translateX(0); }
+}
+
+/* ✅ 추가: 열린 상태 bump (open의 기본 transform을 유지한 채로 살짝만 움직임) */
+@keyframes handleBumpOpen {
+  0%   { transform: translate(calc(100% + 4px), -50%) scaleX(-1) translateX(0); }
+  45%  { transform: translate(calc(100% + 4px), -50%) scaleX(-1) translateX(-10px); }
+  100% { transform: translate(calc(100% + 4px), -50%) scaleX(-1) translateX(0); }
+}
+
+.edge-handle.open {
+  right: 75%;
+  transform: translate(calc(100% + 4px), -50%) scaleX(-1);
+  box-shadow:
+    -1px 0 0 rgba(191, 219, 254, 0.75),
+    -2px 0 12px rgba(79, 70, 229, 0.9);
+}
+
+.edge-handle::before {
+  content: "";
+  width: 3px;
+  height: 42%;
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+/* ✅ 숫자 배지 (핸들에 붙는 keep count) */
+.keep-badge {
+  position: absolute;
+  top: -6px;
+  right: 14px; /* 핸들 바깥쪽(왼쪽으로) */
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: #0b1120;
+  background: rgba(248, 250, 252, 0.92);
+  border: 1px solid rgba(191, 219, 254, 0.9);
+  box-shadow:
+    0 6px 14px rgba(0,0,0,0.45),
+    0 0 0 1px rgba(79,70,229,0.25);
+  transform-origin: 100% 0%;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.keep-badge.visible {
+  opacity: 1;
+}
+
+.keep-badge.pop {
+  animation: badgePop 0.32s ease-out;
+}
+
+@keyframes badgePop {
+  0%   { transform: scale(0.7); filter: blur(0.2px); }
+  55%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+
+/* 🔹 패널 – 가로 75% */
+.edge-panel {
+  position: absolute;
+  top: 41%;
+  right: 0;
+  transform: translate(100%, -50%);
+  width: 75%;
+  height: 50%;
+  background: radial-gradient(circle at top, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.96));
+  box-shadow:
+    -1px 0 0 rgba(148, 163, 184, 0.6),
+    -18px 0 40px rgba(15, 23, 42, 0.95);
+  border-radius: 18px 0 0 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px 16px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.edge-panel.open {
+  transform: translate(0, -50%);
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 6px;
+}
+
+.panel-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #e5e7eb;
+  letter-spacing: 0.04em;
+}
+
+.panel-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel-count {
+  font-size: 11px;
+  color: #cbd5f5;
+}
+
+.panel-close {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.8);
+  color: #e5e7eb;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.9);
+}
+
+.panel-close:hover {
+  background: rgba(30, 64, 175, 0.9);
+}
+
+.panel-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 8px;
+}
+
+.panel-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.panel-list::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: rgba(148, 163, 184, 0.7);
+}
+
+.panel-item {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 4px;
+  margin-bottom: 8px;
+  background: linear-gradient(
+    to right,
+    rgba(15, 23, 42, 0.9),
+    rgba(30, 64, 175, 0.6)
+  );
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel-item-image-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0b1120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-item-image-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+.panel-item-text {
+  flex: 1;
+  font-size: 11px;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.panel-item-name {
+  font-weight: 500;
+}
+
+.panel-item-meta {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.panel-item-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(185, 28, 28, 0.6);
+}
+
+.panel-item-remove:hover {
+  background: #dc2626;
+}
+
+.preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at center, rgba(15,23,42,0.9), rgba(15,23,42,0.95));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+  z-index: 5;
+}
+
+.preview-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.preview-card {
+  width: 64%;
+  max-width: 480px;
+  border-radius: 18px;
+  background: radial-gradient(circle at top, rgba(31,41,55,0.9), rgba(15,23,42,0.98));
+  border: 1px solid rgba(148,163,184,0.8);
+  box-shadow:
+    0 18px 45px rgba(0,0,0,0.85),
+    0 0 0 1px rgba(15,23,42,0.8);
+  padding: 18px 20px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: previewIn 0.25s ease-out;
+}
+
+@keyframes previewIn {
+  from {
+    transform: translateY(20px) scale(0.94);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+.preview-title {
+  font-size: 13px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #9ca3af;
+}
+
+.preview-look-name {
+  font-size: 16px;
+  font-weight: 500;
+  color: #f9fafb;
+  margin-top: 2px;
+}
+
+.preview-image-area {
+  margin-top: 8px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: #020617;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.preview-image-area .cloth-image-wrapper {
+  max-width: 70%;
+}
+
+.preview-buttons {
+  margin-top: 10px;
+  display: flex;
+  gap: 10px;
+}
+
+.preview-buttons button {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  padding: 9px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.btn-preview-cancel {
+  background: #111827;
+  color: #e5e7eb;
+  box-shadow: 0 3px 10px rgba(0,0,0,0.6);
+}
+
+.btn-preview-cancel:hover {
+  background: #020617;
+}
+
+.btn-preview-select {
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  color: #f9fafb;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.9);
+}
+
+.btn-preview-select:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(55, 48, 163, 0.8);
+}
+
+
+
+/* 버튼 눌렀을 때 색 채워지는 공통 효과 */
+button.pressed {
+  box-shadow:
+    0 0 0 1px rgba(249,250,251,0.9),
+    0 4px 16px rgba(15,23,42,0.9);
+  filter: brightness(1.1);
+}
+
+@media (max-width: 500px) {
+  .mirror-frame {
+    height: 100vh;
+    border-radius: 0;
+  }
+  .main-content {
+    padding: 24px 18px 110px;
+  }
+  .edge-panel {
+    width: 90%;
+  }
+  .edge-handle.open {
+    right: 90%;
+  }
+  .preview-card {
+    width: 82%;
+  }
+  
+  .strip-actions {
+    left: 18px;
+    right: 18px;
+  }
+}
+
+/* =====================================================
+   ✅ KEEP Footer (킵시트 하단 버튼 + 설명)
+===================================================== */
+.keep-footer {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.btn-keep {
+  align-self: center;            /* ✅ 가운데 정렬 */
+  width: auto;                   /* ✅ 내용만큼 */
+  border: none;
+  border-radius: 999px;
+  padding: 8px 18px;             /* ✅ 타원 형태로 딱 감싸기 */
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  white-space: nowrap;
+
+  /* ✅ 착용하기 버튼과 동일한 컬러 */
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  color: #f9fafb;
+
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.85);
+}
+
+.btn-keep:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(55, 48, 163, 0.8);
+}
+
+
+
+.keep-footer-caption {
+  font-size: 11px;
+  line-height: 1.35;
+  color: rgba(248, 250, 252, 0.92); /* ✅ 흰색 글씨 */
+  opacity: 0.92;
+  text-align: center;
+}
+
+/* =====================================================
+   ✅ KEEP Modal (블러 배경 + 중앙 정사각 팝업)
+===================================================== */
+.keep-modal-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  /* ✅ 자연스러운 블러 + 딤 */
+  background: rgba(2, 6, 23, 0.35);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.22s ease;
+  z-index: 50; /* preview(5)보다 위로 */
+}
+
+.keep-modal-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ✅ 중앙 정사각형 카드 */
+.keep-modal {
+  width: min(320px, 72%);
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  background: radial-gradient(circle at top, rgba(31,41,55,0.92), rgba(15,23,42,0.98));
+  border: 1px solid rgba(148,163,184,0.85);
+  box-shadow:
+    0 22px 60px rgba(0,0,0,0.85),
+    0 0 0 1px rgba(15,23,42,0.85);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 18px 18px;
+  text-align: center;
+
+  transform: translateY(14px) scale(0.96);
+  opacity: 0;
+}
+
+.keep-modal-overlay.visible .keep-modal {
+  animation: keepModalIn 0.26s ease-out forwards;
+}
+
+.keep-modal-overlay.closing .keep-modal {
+  animation: keepModalOut 0.28s ease-in forwards;
+}
+
+@keyframes keepModalIn {
+  from { transform: translateY(18px) scale(0.95); opacity: 0; }
+  to   { transform: translateY(0) scale(1); opacity: 1; }
+}
+
+@keyframes keepModalOut {
+  from { transform: translateY(0) scale(1); opacity: 1; }
+  to   { transform: translateY(12px) scale(0.96); opacity: 0; }
+}
+
+.keep-modal-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #f9fafb;
+  letter-spacing: -0.01em;
+}
+
+.keep-modal-sub {
+  font-size: 12px;
+  color: rgba(209, 213, 219, 0.95);
+}
+

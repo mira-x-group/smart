@@ -1,36 +1,79 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Mirror - Capture with Camera</title>
 
-{% block title %}Capture{% endblock %}
+  <!-- 🔗 분리된 CSS 파일 연결 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/capture.css') }}">
+</head>
+<body>
+  <div class="mirror-frame">
+    <div class="mirror-container">
+      <div class="top-bar">
+        <div class="title">Mira X · 촬영</div>
+        <div>VERTICAL · 32"</div>
+      </div>
 
-{% block css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/capture.css') }}">
-{% endblock %}
+      <div class="screen-live">
+        <div class="camera-area" id="cameraArea">
+          <!-- 라이브 비디오 -->
+          <video id="cameraFeed" class="fade-layer visible" autoplay muted playsinline></video>
+          <!-- 캡처 결과 캔버스 -->
+          <canvas id="captureCanvas" class="fade-layer"></canvas>
 
-{% block content %}
-<div class="screen-on"></div>
+          <!-- 사람 실루엣 -->
+          <div class="person-outline fade-layer visible" id="personOutline">
+            <div class="person-outline-inner">
+              <div class="person-head"></div>
+              <div class="person-body"></div>
+            </div>
+          </div>
 
-<div class="preview">
-    <video id="camera" autoplay playsinline muted></video>
+          <!-- 안내 문구 -->
+          <div class="align-guide fade-layer visible" id="alignGuide">
+            머리와 어깨가 실루엣 안에 자연스럽게 들어오게 서 주세요
+          </div>
 
-    <div class="voice-guide">준비되시면 촬영 해주세요</div>
+          <!-- 스캔 레이저 오버레이 -->
+          <div class="scan-overlay" id="scanOverlay">
+            <div class="scan-scanned" id="scanScanned"></div>
+            <div class="scan-line" id="scanLine"></div>
+          </div>
 
-    <div id="message" class="msg">카메라 권한을 허용해주세요.</div>
+          <!-- 3초 카운트다운 오버레이 -->
+          <div class="countdown-overlay" id="countdownOverlay">
+            <div class="countdown-number" id="countdownNumber">3</div>
+          </div>
+        </div>
+      </div>
 
-    <div class="countdown-timer" id="countdownTimer">
-        <svg class="timer-svg" viewBox="0 0 100 100">
-            <circle class="timer-track" cx="50" cy="50" r="45"></circle>
-            <circle class="timer-progress" cx="50" cy="50" r="45"></circle>
-        </svg>
+      <div class="bottom-area">
+        <!-- 촬영 버튼 -->
+        <button class="capture-button fade-group active" id="captureButton"></button>
+
+        <!-- 캡처 후 버튼 -->
+        <div class="result-buttons fade-group" id="resultButtons">
+          <button class="btn-recapture" id="btnRecapture">재촬영</button>
+          <button class="btn-next" id="btnNext">다음</button>
+        </div>
+
+        <div class="bottom-hint" id="bottomHint">
+          준비되면 버튼을 눌러 촬영하세요.
+        </div>
+      </div>
     </div>
+  </div>
 
-    <div class="controls">
-        <button class="shutter" id="shutterBtn" aria-label="촬영"></button>
-    </div>
-</div>
+  <!-- ✅ capture.js가 mirror_id / session_id를 읽을 수 있게 주입 (UI/UX 변경 없음) -->
+  <script>
+    window.MIRROR_CTX = {
+      mirror_id: "{{ mirror_id or '' }}",
+      session_id: "{{ session_id or '' }}"
+    };
+  </script>
 
-<canvas id="snapshot"></canvas>
-{% endblock %}
-
-{% block body_extra %}
-    <script src="{{ url_for('static', filename='js/capture.js') }}"></script>
-{% endblock %}
+  <!-- 🔗 분리된 JS 파일 연결 -->
+  <script src="{{ url_for('static', filename='js/capture.js') }}"></script>
+</body>
+</html>

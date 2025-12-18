@@ -1,35 +1,55 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mira X · 피팅 결과</title>
 
-{% block title %}Aurora Result Page{% endblock %}
+  <!-- 외부 CSS -->
+  <link rel="stylesheet" href="result.css">
+</head>
+<body>
+  <div class="mirror-frame">
+    <div class="mirror-container">
+      <!-- 중앙: 합성 결과 영역 (지금은 완전 비어 있음) -->
+      <div class="screen-result" id="resultArea">
+        <!--
+          ⚠️ 나중에 누끼 딴 합성 이미지는 여기 안에 넣으면 됨.
+          예시:
+          <img src="images/fitted_result.png" alt="피팅 결과" />
+        -->
+      </div>
 
-{% block css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
-{% endblock %}
+      <!-- 오른쪽 킵 패널 손잡이 -->
+      <div class="edge-handle" id="edgeHandle"></div>
 
-{% block content %}
-    <div class="aurora"></div>
-    
-    <div class="content-wrapper">
-
-        <div class="photo-frame">
-            {% if result_image %}
-            <img 
-                src="{{ result_image }}" 
-                alt="결과 이미지"
-                style="max-width: 100%; max-height: 100%; object-fit: contain;">
-            {% else %}
-            <span class="placeholder-text">[ 결과 사진 영역 ]</span>
-            {% endif %}
+      <!-- 오른쪽 킵 패널 -->
+      <div class="edge-panel" id="edgePanel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <div class="panel-title">선택한 룩</div>
+          </div>
+          <div class="panel-header-right">
+            <div class="panel-count" id="panelCount">0개</div>
+            <button class="panel-close" id="panelCloseButton">‹</button>
+          </div>
         </div>
-
-        <div class="button-container">
-            <button class="btn btn-retry" onclick="window.location.href='/select'">
-                다시 입어보기
-            </button>
-            <button class="btn btn-exit" onclick="window.location.href='/'">
-                종료
-            </button>
+        <div class="panel-list" id="panelList">
+          <!-- 나중에 JS로 LOOK 목록 채우면 됨 -->
         </div>
+        <button class="feeding-button" id="feedingButton">
+          <span class="icon">✨</span>
+          <span>피팅 시작하기</span>
+        </button>
+      </div>
 
+      <!-- 하단: 셀렉으로 돌아가기 버튼만 -->
+      <div class="bottom-area">
+        <button class="btn-back" id="btnBack">셀렉으로 돌아가기</button>
+      </div>
     </div>
-{% endblock %}
+  </div>
+
+  <!-- JS 파일 -->
+  <script src="result.js"></script>
+</body>
+</html>

@@ -2,19 +2,34 @@ import base64
 import requests
 import time
 import os
+from dotenv import load_dotenv
 
-API_KEY = "fa-0obhFH8IfffG-BaOoDmNMuQ3DwW35oIbDjUNg"
+# 환경 변수에서 API 키 로드
+load_dotenv()
+API_KEY = os.getenv("FASHN_API_KEY")
+if not API_KEY:
+    print("⚠️ FASHN_API_KEY가 설정되지 않았습니다. 환경 변수를 확인하세요.")
+
 BASE_URL = "https://api.fashn.ai/v1"
-HEADERS = {
-    "Authorization": f"Bearer {API_KEY}",
-    "Content-Type": "application/json"
-}
+
+def get_headers():
+    """API 키를 포함한 헤더 반환"""
+    if not API_KEY:
+        return None
+    return {
+        "Authorization": f"Bearer {API_KEY}",
+        "Content-Type": "application/json"
+    }
 
 def encode_image(path):
     with open(path, "rb") as f:
         return "data:image/jpeg;base64," + base64.b64encode(f.read()).decode("utf-8")
 
 def run_tryon(model_img_path, garment_img_path, output_filename):
+    if not API_KEY:
+        print("❌ FASHN_API_KEY가 설정되지 않아 Try-On 기능을 사용할 수 없습니다.")
+        return None
+        
     print(f"🚀 Fashn Try-On 요청 전송 중... ({garment_img_path})")
     result_dir = "static/results"
     os.makedirs(result_dir, exist_ok=True)
@@ -35,7 +50,12 @@ def run_tryon(model_img_path, garment_img_path, output_filename):
             }
         }
 
-        run_response = requests.post(f"{BASE_URL}/run", json=input_data, headers=HEADERS)
+        headers = get_headers()
+        if not headers:
+            print("❌ API 키가 없어 요청을 보낼 수 없습니다.")
+            return None
+            
+        run_response = requests.post(f"{BASE_URL}/run", json=input_data, headers=headers)
         run_data = run_response.json()
         if "id" not in run_data:
             print("❌ API 호출 실패:", run_data)
@@ -43,7 +63,7 @@ def run_tryon(model_img_path, garment_img_path, output_filename):
         run_id = run_data["id"]
 
         while True:
-            status_resp = requests.get(f"{BASE_URL}/status/{run_id}", headers=HEADERS).json()
+            status_resp = requests.get(f"{BASE_URL}/status/{run_id}", headers=headers).json()
             if status_resp["status"] == "completed":
                 print("✅ 합성 완료 →", output_path)
                 output_urls = status_resp["output"]

@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: smart-mirror
+    env: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn app:app
+    envVars:
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: FASHN_API_KEY
+        sync: false
+      - key: FLASK_DEBUG
+        value: false
+      - key: PYTHON_VERSION
+        value: 3.11.0
+    healthCheckPath: /
+
+databases:
+  - name: smart-mirror-db
+    plan: free
+    databaseName: smartmirror
+    user: smartmirror
+

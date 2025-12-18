@@ -1,86 +1,199 @@
-// static/js/capture.js
+const video = document.getElementById("cameraFeed");
+const canvas = document.getElementById("captureCanvas");
+const cameraArea = document.getElementById("cameraArea");
 
-const video = document.getElementById('camera');
-const snapCanvas = document.getElementById('snapshot');
-const msg = document.getElementById('message');
-const shutterBtn = document.getElementById('shutterBtn');
-const countdownTimer = document.getElementById('countdownTimer');
-const screenOn = document.querySelector(".screen-on");
+const personOutline = document.getElementById("personOutline");
+const alignGuide = document.getElementById("alignGuide");
 
-let counting = false;
+const scanOverlay = document.getElementById("scanOverlay");
+const scanScanned = document.getElementById("scanScanned");
+const scanLine = document.getElementById("scanLine");
 
-/* ★ 화면 켜짐 애니메이션 끝나면 요소 제거 */
-screenOn.addEventListener("animationend", () => {
-  screenOn.remove();
-});
+const captureButton = document.getElementById("captureButton");
+const resultButtons = document.getElementById("resultButtons");
+const btnRecapture = document.getElementById("btnRecapture");
+const btnNext = document.getElementById("btnNext");
+const bottomHint = document.getElementById("bottomHint");
 
-async function startCamera(){
-  try{
-    const stream = await navigator.mediaDevices.getUserMedia({
-      video:{ facingMode:"user" },
-      audio:false
-    });
-    video.srcObject = stream;
-    msg.classList.remove("show");
-  }catch(e){
-    msg.textContent = "카메라 권한을 허용해주세요.";
-    msg.classList.add("show");
-  }
+const countdownOverlay = document.getElementById("countdownOverlay");
+const countdownNumber = document.getElementById("countdownNumber");
+
+let countdownTimer = null;
+
+/** ✅ capture.html에서 주입한 값: window.MIRROR_CTX = { mirror_id, session_id } */
+function getCtx() {
+  const ctx = window.MIRROR_CTX || {};
+  return {
+    mirror_id: (ctx.mirror_id || "").trim(),
+    session_id: (ctx.session_id || "").trim(),
+  };
 }
 
-function sleep(ms){ return new Promise(r=>setTimeout(r, ms)); }
+/** ✅ 업로드 후 select로 이동할 때 세션 유지 */
+function goSelect() {
+  const { mirror_id, session_id } = getCtx();
 
-function sendToReview(){
-  const w = video.videoWidth, h = video.videoHeight;
-  snapCanvas.width = w;
-  snapCanvas.height = h;
+  // 세션 없으면 흐름 성립이 안 되니까 대기 화면으로 복귀
+  if (!session_id) {
+    window.location.href = "/mirror";
+    return;
+  }
 
-  const ctx = snapCanvas.getContext("2d");
+  const mid = encodeURIComponent(mirror_id || "");
+  const sid = encodeURIComponent(session_id);
+  window.location.href = `/select?mirror_id=${mid}&session_id=${sid}`;
+}
 
+// 카메라 연결
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  navigator.mediaDevices
+    .getUserMedia({ video: { facingMode: "user" } })
+    .then(stream => { video.srcObject = stream; })
+    .catch(err => { console.error(err); });
+}
+
+function showLiveMode() {
+  video.classList.add("visible");
+  personOutline.classList.add("visible");
+  alignGuide.classList.add("visible");
+  canvas.classList.remove("visible");
+
+  captureButton.classList.add("active");
+  resultButtons.classList.remove("active");
+
+  bottomHint.textContent = "준비되면 버튼을 눌러 촬영하세요.";
+
+  // 카운트다운 도중 재촬영 눌렀을 때 정리
+  if (countdownTimer) {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+  }
+  countdownOverlay.classList.remove("visible");
+}
+
+function showCapturedMode() {
+  const w = video.videoWidth || cameraArea.clientWidth;
+  const h = video.videoHeight || cameraArea.clientHeight;
+  canvas.width = w;
+  canvas.height = h;
+
+  const ctx = canvas.getContext("2d");
   ctx.save();
-  ctx.translate(w,0);
-  ctx.scale(-1,1);
-  ctx.drawImage(video,0,0,w,h);
+  ctx.translate(w, 0);
+  ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0, w, h);
   ctx.restore();
 
-  const imgData = snapCanvas.toDataURL("image/jpeg", 0.92);
-  localStorage.setItem("capturedImage", imgData);
+  video.classList.remove("visible");
+  personOutline.classList.remove("visible");
+  alignGuide.classList.remove("visible");
+  canvas.classList.add("visible");
 
-  window.location.href = "/review";
+  captureButton.classList.remove("active");
+  resultButtons.classList.add("active");
+
+  bottomHint.textContent = "촬영된 화면입니다. 재촬영 또는 다음을 선택하세요.";
 }
 
-shutterBtn.onclick = async () => {
-  if(counting) return;
-  counting = true;
-  shutterBtn.disabled = true;
+function startScanAndCapture() {
+  // 스캔 시작
+  scanOverlay.classList.add("active");
+  scanScanned.style.height = "0%";
+  scanLine.style.top = "0%";
 
-  shutterBtn.classList.remove("inner-glow");
-  void shutterBtn.offsetWidth;
-  shutterBtn.classList.add("inner-glow");
+  // 강제 리플로우 후 애니메이션 시작
+  void scanScanned.offsetHeight;
+  scanScanned.style.height = "100%";
+  scanLine.style.top = "100%";
 
-  countdownTimer.classList.add("show");
+  const duration = 900; // ms
+  setTimeout(() => {
+    scanOverlay.classList.remove("active");
+    scanScanned.style.height = "0%";
+    scanLine.style.top = "0%";
 
-  await sleep(1000);
-  countdownTimer.classList.add("step-1");
+    showCapturedMode();
+    captureButton.disabled = false;
+  }, duration + 80);
+}
 
-  await sleep(1000);
-  countdownTimer.classList.add("step-2");
+// 3초 카운트다운 + 스캔/캡처
+function startCountdownAndScan() {
+  if (captureButton.disabled) return;
 
-  await sleep(1000);
-  countdownTimer.classList.add("step-3");
+  let count = 3;
+  countdownNumber.textContent = count;
+  countdownOverlay.classList.add("visible");
+  bottomHint.textContent = "3초 뒤 촬영됩니다.";
 
-  shutterBtn.classList.remove("inner-glow");
-  void shutterBtn.offsetWidth;
-  shutterBtn.classList.add("inner-glow");
-  countdownTimer.classList.add("snap");
+  captureButton.disabled = true;
 
-  await sleep(500);
+  countdownTimer = setInterval(() => {
+    count -= 1;
 
-  sendToReview();
+    if (count > 0) {
+      countdownNumber.textContent = count;
+    } else {
+      clearInterval(countdownTimer);
+      countdownTimer = null;
+      countdownOverlay.classList.remove("visible");
+      startScanAndCapture();
+    }
+  }, 1000);
+}
 
-  countdownTimer.classList.remove("show", "step-1", "step-2", "step-3", "snap");
-  shutterBtn.disabled = false;
-  counting = false;
-};
+// 촬영 버튼 → 3초 카운트다운 후 스캔 + 캡처
+captureButton.addEventListener("click", () => {
+  startCountdownAndScan();
+});
 
-window.addEventListener("load", startCamera);
+// 재촬영 → 라이브 모드
+btnRecapture.addEventListener("click", () => {
+  captureButton.disabled = false;
+  showLiveMode();
+});
+
+// 캔버스 이미지를 서버에 업로드하는 함수
+function uploadCapturedImageAndGoNext() {
+  if (!canvas.width || !canvas.height) {
+    alert("먼저 사진을 촬영해 주세요.");
+    return;
+  }
+
+  // canvas → base64 데이터 URL (JPEG)
+  const dataURL = canvas.toDataURL("image/jpeg");
+
+  localStorage.setItem("capturedPhoto", dataURL);
+
+  bottomHint.textContent = "사진을 저장 중입니다...";
+  btnNext.disabled = true;
+  btnRecapture.disabled = true;
+
+  fetch("/upload", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ image: dataURL }),
+  })
+    .then(res => res.json())
+    .then(data => {
+      if (!data.success) {
+        throw new Error("업로드 실패");
+      }
+      // ✅ 업로드 성공 → select 페이지로 이동 (세션 유지)
+      goSelect();
+    })
+    .catch(err => {
+      console.error(err);
+      alert("사진 업로드 중 오류가 발생했습니다. 다시 시도해 주세요.");
+      btnNext.disabled = false;
+      btnRecapture.disabled = false;
+      bottomHint.textContent = "촬영된 화면입니다. 재촬영 또는 다음을 선택하세요.";
+    });
+}
+
+// 다음 버튼 (다음 화면 연결)
+btnNext.addEventListener("click", () => {
+  uploadCapturedImageAndGoNext();
+});

@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>매장 이용 데이터 관리</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; background:#f7f7f7; }
+    .wrap { max-width: 1200px; margin: 18px auto; padding: 0 12px; }
+
+    .topbar {
+      display:flex; gap:10px; align-items:flex-start; justify-content:space-between;
+      padding: 14px; background:#fff; border:1px solid #e5e5e5; border-radius:12px;
+    }
+    .title { font-size:18px; font-weight:800; }
+
+    .tabs { display:flex; flex-wrap:wrap; gap:8px; margin-top: 12px; }
+    .tab {
+      display:inline-block; padding:8px 10px; border-radius:999px;
+      background:#fff; border:1px solid #ddd; text-decoration:none; color:#333;
+      font-size: 14px;
+    }
+    .tab.active { border-color:#333; font-weight:700; }
+
+    .card { margin-top: 12px; background:#fff; border:1px solid #e5e5e5; border-radius:12px; overflow:hidden; }
+
+    .meta {
+      padding: 10px 12px; border-bottom:1px solid #eee; color:#555; font-size:14px;
+      display:flex; gap:16px; flex-wrap:wrap; align-items:center;
+    }
+
+    table { width:100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 10px; border-bottom:1px solid #eee; vertical-align: top; }
+    th { position: sticky; top: 0; background:#fafafa; z-index:1; text-align:left; }
+    td { max-width: 380px; word-break: break-all; }
+
+    .pager {
+      display:flex; gap:8px; padding: 10px 12px; border-top:1px solid #eee;
+      align-items:center; flex-wrap:wrap;
+    }
+
+    .btn {
+      display:inline-block; padding:8px 10px; border-radius:10px;
+      background:#fff; border:1px solid #ddd; text-decoration:none; color:#333;
+      font-size:14px;
+      cursor:pointer;
+    }
+    .btn:hover { border-color:#333; }
+
+    .small { font-size: 13px; color:#666; }
+    input { padding:8px 10px; border-radius:10px; border:1px solid #ddd; width: 90px; }
+    .muted { color:#888; }
+
+    .pill {
+      display:inline-block;
+      padding: 3px 8px;
+      border-radius: 999px;
+      border: 1px solid #e5e5e5;
+      background: #f3f3f3;
+      font-size: 12px;
+      color:#444;
+    }
+  </style>
+</head>
+
+<body>
+  {# ✅ 테이블명 한글 라벨 (app.py에서 table_labels 넘기면 그걸 사용) #}
+  {% set TABLE_LABELS = table_labels if table_labels is defined else {
+    "scan_logs": "상품 스캔 기록",
+    "delete_logs": "상품 삭제 기록",
+    "keep_events": "직원 호출 기록",
+    "sessions": "방문 세션 목록",
+    "products": "상품 정보",
+    "users": "고객 정보",
+    "mirror_links": "미러 연결 기록"
+  } %}
+
+  {# ✅ 컬럼명 한글 라벨 (테이블별로 다르게) #}
+  {% set COL_LABELS = {
+    "scan_logs": {
+      "id": "로그 ID",
+      "session_id": "방문 ID",
+      "product_id": "상품 ID",
+      "scanned_at": "스캔 시간"
+    },
+    "delete_logs": {
+      "id": "로그 ID",
+      "session_id": "방문 ID",
+      "product_id": "상품 ID",
+      "deleted_at": "삭제 시간"
+    },
+    "keep_events": {
+      "id": "호출 ID",
+      "session_id": "방문 ID",
+      "mirror_id": "미러 번호",
+      "product_id": "요청 상품",
+      "status": "처리 상태",
+      "created_at": "호출 시간",
+      "acked_at": "직원 확인 시간",
+      "resolved_at": "처리 완료 시간"
+    },
+    "sessions": {
+      "id": "방문 ID",
+      "created_at": "방문 시작 시간",
+      "clicked_products": "스캔한 상품 목록"
+    },
+    "products": {
+      "id": "상품 ID",
+      "name": "상품명",
+      "category": "상품 분류",
+      "color": "색상",
+      "size": "사이즈",
+      "price": "가격",
+      "image_path": "이미지 경로"
+    },
+    "users": {
+      "id": "고객 ID",
+      "name": "고객명",
+      "phone": "연락처"
+    },
+    "mirror_links": {
+      "mirror_id": "미러 번호",
+      "session_id": "연결된 방문 ID",
+      "updated_at": "마지막 연결 시간"
+    }
+  } %}
+
+  {# ✅ 값 치환 (보기 좋은 한글) #}
+  {% set CATEGORY_MAP = {"top": "상의", "bottom": "하의"} %}
+  {% set STATUS_MAP = {"open": "대기", "ack": "확인", "resolved": "완료"} %}
+
+  <div class="wrap">
+    <div class="topbar">
+      <div>
+        <div class="title">데이터 관리</div>
+      </div>
+
+      <form method="get" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <input type="hidden" name="table" value="{{ table }}">
+        <label class="small">limit</label>
+        <input name="limit" value="{{ limit }}" />
+        <label class="small">offset</label>
+        <input name="offset" value="{{ offset }}" />
+        <button class="btn" type="submit">적용</button>
+        <a class="btn" href="/admin/db?table={{table}}&limit={{limit}}&offset={{offset}}">새로고침</a>
+      </form>
+    </div>
+
+    <div class="tabs">
+      {% for t in tables %}
+        <a class="tab {% if t==table %}active{% endif %}"
+           href="/admin/db?table={{t}}&limit={{limit}}&offset=0">
+          {{ TABLE_LABELS.get(t, t) }}
+        </a>
+      {% endfor %}
+    </div>
+
+    <div class="card">
+      <div class="meta">
+        <div><b>카테고리</b>: {{ TABLE_LABELS.get(table, table) }} <span class="muted">({{ table }})</span></div>
+        <div><b>총 데이터</b>: {{ total }}</div>
+        <div><b>현재 표시</b>: {{ rows|length }}</div>
+        <div><b>offset</b>: {{ offset }}</div>
+      </div>
+
+      <div style="overflow:auto; max-height: 70vh;">
+        <table>
+          <thead>
+            <tr>
+              {% for c in columns %}
+                <th>{{ COL_LABELS.get(table, {}).get(c, c) }}</th>
+              {% endfor %}
+            </tr>
+          </thead>
+          <tbody>
+            {% if rows and rows|length > 0 %}
+              {% for r in rows %}
+                <tr>
+                  {% for c in columns %}
+                    {% set val = r[c] %}
+                    {# ✅ products.category 값 한글 치환 #}
+                    {% if table == "products" and c == "category" %}
+                      {% set v = (val|string)|lower %}
+                      <td><span class="pill">{{ CATEGORY_MAP.get(v, val) }}</span></td>
+
+                    {# ✅ keep_events.status 값 한글 치환 #}
+                    {% elif table == "keep_events" and c == "status" %}
+                      {% set v = (val|string)|lower %}
+                      <td><span class="pill">{{ STATUS_MAP.get(v, val) }}</span></td>
+
+                    {% else %}
+                      <td>{{ val }}</td>
+                    {% endif %}
+                  {% endfor %}
+                </tr>
+              {% endfor %}
+            {% else %}
+              <tr>
+                <td colspan="{{ columns|length }}" class="small" style="padding:16px;">
+                  데이터가 없습니다.
+                </td>
+              </tr>
+            {% endif %}
+          </tbody>
+        </table>
+      </div>
+
+      <div class="pager">
+        {% set prev = offset - limit %}
+        {% set next = offset + limit %}
+        <a class="btn" href="/admin/db?table={{table}}&limit={{limit}}&offset=0">처음</a>
+        <a class="btn" href="/admin/db?table={{table}}&limit={{limit}}&offset={{ 0 if prev < 0 else prev }}">이전</a>
+        <a class="btn" href="/admin/db?table={{table}}&limit={{limit}}&offset={{ next }}">다음</a>
+        <span class="small">
+          팁: <b>상품 스캔 기록</b>에서 방문 ID / 상품 ID / 스캔 시간 확인
+        </span>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

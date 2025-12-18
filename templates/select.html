@@ -1,35 +1,183 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Smart Mirror - Select Screen (Vertical)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/select.css') }}">
+</head>
+<body>
+  <div class="mirror-frame">
+    <div class="mirror-container">
+      <div class="main-content">
+        
+        <div class="title-area" style="position: relative; z-index: 10;">TODAY'S LOOK</div>
+        <div class="subtitle" style="position: relative; z-index: 10;">
+          하단에서 룩을 선택해 오른쪽에 킵해 두고, 피팅 단계에서 하나씩 비교해 보세요.
+        </div>
 
-{% block title %}Select Clothes — Updated Layout{% endblock %}
+        <div class="captured-photo-wrapper" style="
+            position: absolute;
+            top: 0;              /* 화면 맨 위부터 시작 */
+            bottom: 230px;       /* 하단 썸네일 위까지 영역 확보 */
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 0;          /* 텍스트(10)보다 낮은 숫자라 뒤로 감 */
+            pointer-events: none;
+            overflow: hidden;
+        ">
+            <img id="capturedPhoto" src="" alt="촬영된 사진" style="
+                width: 100%;
+                height: 100%;
+                object-fit: cover;   /* 비율 유지하며 꽉 채움 */
+                border-radius: 0 0 12px 12px;
+                display: none;
+            ">
+        </div>
+      </div>
 
-{% block css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/select.css') }}">
-{% endblock %}
+      <div class="strip-actions" style="
+          position: absolute;
+          bottom: 250px;
+          right: 30px;
+          z-index: 20;        /* 텍스트(10)보다 더 위에 */
+          text-align: right;
+          width: auto;
+      ">
+        <button class="btn-tryon" id="tryOnButton" type="button" style="
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        ">착용하기</button>
+      </div>
 
-{% block content %}
-<button class="tryon-btn" id="tryonBtn">착용하기</button>
+      <!-- ✅ 수정: cloth-number를 cloth-image-wrapper 밖으로 이동 -->
+      <div class="clothes-strip" id="clothesStrip">
 
-<div class="top-photo-area"></div>
+        <!-- ✅ 수정: 순차적으로 채우기 위해 상의와 하의를 합친 배열 사용 -->
+        {% set all_items = (tops if tops is defined else []) + (bottoms if bottoms is defined else []) %}
+        {% set all_items = all_items[:6] %}
 
-<div class="clothes-row">
-    <div class="row-title">상의</div>
-    <div class="horizontal-scroll" id="tops-row">
-        {% for top_img in tops %}
-        <img src="/static/{{ top_img.split('static/')[-1] }}" class="clothes-img" data-type="top" data-name="{{ loop.index }}">
-        {% endfor %}
+        <div class="cloth-item" data-name="LOOK 1"
+             data-product-id="{{ all_items[0].id if all_items|length > 0 and all_items[0].id is not none else '' }}">
+          <div class="cloth-image-wrapper"></div>
+          <div class="cloth-number">1</div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+
+        <div class="cloth-item" data-name="LOOK 2"
+             data-product-id="{{ all_items[1].id if all_items|length > 1 and all_items[1].id is not none else '' }}">
+          <div class="cloth-image-wrapper"></div>
+          <div class="cloth-number">2</div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+
+        <div class="cloth-item" data-name="LOOK 3"
+             data-product-id="{{ all_items[2].id if all_items|length > 2 and all_items[2].id is not none else '' }}">
+          <div class="cloth-image-wrapper"></div>
+          <div class="cloth-number">3</div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+
+        <div class="cloth-item" data-name="LOOK 4"
+             data-product-id="{{ all_items[3].id if all_items|length > 3 and all_items[3].id is not none else '' }}">
+          <div class="cloth-image-wrapper"></div>
+          <div class="cloth-number">4</div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+
+        <div class="cloth-item" data-name="LOOK 5"
+             data-product-id="{{ all_items[4].id if all_items|length > 4 and all_items[4].id is not none else '' }}">
+          <div class="cloth-image-wrapper"></div>
+          <div class="cloth-number">5</div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+
+        <div class="cloth-item" data-name="LOOK 6"
+             data-product-id="{{ all_items[5].id if all_items|length > 5 and all_items[5].id is not none else '' }}">
+          <div class="cloth-image-wrapper"></div>
+          <div class="cloth-number">6</div>
+          <button class="cloth-fav" type="button">♡</button>
+        </div>
+
+      </div>
+
+      <!-- ✅ 여기만 수정됨: keepBadge 추가 -->
+      <div class="edge-handle" id="edgeHandle">
+        <span class="keep-badge" id="keepBadge">0</span>
+      </div>
+
+      <div class="edge-panel" id="edgePanel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <div class="panel-title">선택한 룩</div>
+          </div>
+          <div class="panel-header-right">
+            <div class="panel-count" id="panelCount">0개</div>
+            <button class="panel-close" id="panelCloseButton">‹</button>
+          </div>
+        </div>
+        <div class="panel-list" id="panelList"></div>
+
+        <!-- ✅ KEEP 버튼 영역 (킵시트 하단) -->
+        <div class="keep-footer">
+          <button class="btn-keep" id="keepActionButton" type="button">KEEP</button>
+          <div class="keep-footer-caption">
+            가상 피팅을 종료하고 제품을 피팅룸으로 준비해드립니다
+          </div>
+        </div>
+      </div>
+
+      <!-- ✅ KEEP 팝업 오버레이 -->
+      <div class="keep-modal-overlay" id="keepModalOverlay" aria-hidden="true">
+        <div class="keep-modal" id="keepModal" role="dialog" aria-modal="true">
+          <div class="keep-modal-title" id="keepModalTitle">7번 피팅룸으로 이동해주세요</div>
+          <div class="keep-modal-sub">직원이 제품을 준비해드리겠습니다</div>
+        </div>
+      </div>
+
+      <div class="preview-overlay" id="previewOverlay">
+        <div class="preview-card" id="previewCard">
+          <div>
+            <div class="preview-title">LOOK PREVIEW</div>
+            <div class="preview-look-name" id="previewLookName">LOOK</div>
+          </div>
+          <div class="preview-image-area" id="previewImageArea"></div>
+          <div class="preview-buttons">
+            <button class="btn-preview-cancel" type="button" id="previewCancelBtn">취소</button>
+            <button class="btn-preview-select" type="button" id="previewSelectBtn">선택</button>
+          </div>
+        </div>
+      </div>
+
     </div>
-</div>
+  </div>
 
-<div class="clothes-row">
-    <div class="row-title">하의</div>
-    <div class="horizontal-scroll" id="bottoms-row">
-        {% for bottom_img in bottoms %}
-        <img src="/static/{{ bottom_img.split('static/')[-1] }}" class="clothes-img" data-type="bottom" data-name="{{ loop.index }}">
-        {% endfor %}
-    </div>
-</div>
-{% endblock %}
+  <!-- ✅ 데이터만 JS로 주입 (UI 영향 없음) -->
+  <script>
+    window.SESSION_TOPS = {{ tops | tojson | safe }};
+    window.SESSION_BOTTOMS = {{ bottoms | tojson | safe }};
+    window.SESSION_ID = {{ session_id | tojson | safe }};
+  </script>
 
-{% block body_extra %}
-    <script src="{{ url_for('static', filename='js/select.js') }}"></script>
-{% endblock %}
+  <script src="{{ url_for('static', filename='js/select.js') }}"></script>
+
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      // 1. capture 페이지에서 저장한 사진 데이터 가져오기
+      const photoData = localStorage.getItem("capturedPhoto");
+      
+      // 2. 사진을 넣을 이미지 태그 찾기
+      const targetImage = document.getElementById("capturedPhoto");
+
+      // 3. 데이터가 있으면 이미지 표시
+      if (photoData && targetImage) {
+        targetImage.src = photoData;
+        targetImage.style.display = "block"; // 숨겨뒀던 이미지를 보이게 함
+      } else {
+        console.log("저장된 사진이 없습니다.");
+      }
+    });
+  </script>
+</body>
+</html>
