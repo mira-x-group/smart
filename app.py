@@ -1290,13 +1290,12 @@ def admin_db_view():
 # Flask 실행
 # -----------------------------
 if __name__ == "__main__":
-    # Render는 PORT 환경 변수를 제공
     port = int(os.getenv("PORT", 5001))
-    # Render에서는 debug=False로 실행 (프로덕션 환경)
-    debug = os.getenv("FLASK_DEBUG", "False").lower() == "true"
-    
+    debug = os.getenv("FLASK_DEBUG", "True").lower() == "true"
+
     app.run(
-        debug=debug,
         host="0.0.0.0",
         port=port,
+        debug=debug,
+        ssl_context="adhoc",   # ✅ HTTPS 임시 인증서
     )

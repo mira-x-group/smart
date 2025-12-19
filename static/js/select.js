@@ -1,12 +1,4 @@
-const edgePanel = document.getElementById("edgePanel");
-const edgeHandle = document.getElementById("edgeHandle");
 const clothesStrip = document.getElementById("clothesStrip");
-const panelList = document.getElementById("panelList");
-const panelCount = document.getElementById("panelCount");
-const panelCloseButton = document.getElementById("panelCloseButton");
-
-// ✅ 추가: 핸들 배지 DOM (HTML에 <span id="keepBadge"> 있어야 함)
-const keepBadge = document.getElementById("keepBadge");
 
 const previewOverlay = document.getElementById("previewOverlay");
 const previewImageArea = document.getElementById("previewImageArea");
@@ -36,11 +28,9 @@ let currentPreviewItem = null;
   const items = clothesStrip.querySelectorAll(".cloth-item");
 
   function toItemObj(v) {
-    // v가 문자열이면 src만 있는 객체로 변환
     if (!v) return { src: "", id: "" };
     if (typeof v === "string") return { src: v, id: "" };
 
-    // 객체면 가능한 키들 흡수
     const id = (v.id !== undefined && v.id !== null) ? String(v.id) : "";
     let src = "";
 
@@ -49,27 +39,20 @@ let currentPreviewItem = null;
     else if (v.image_path) src = v.image_path;
     else if (v.src) src = v.src;
 
-    // image_path가 "tops/top1.png" 형태면 /static 붙이기
     if (src && !src.startsWith("/") && !src.startsWith("http")) {
       src = "/static/" + src;
     }
     return { src, id };
   }
 
-  // ✅ 수정: 최대 6개까지 표시하도록 변경
-  // - 상의가 많으면 상의가 더 많은 슬롯을 차지할 수 있음
-  // - 하의가 많으면 하의가 더 많은 슬롯을 차지할 수 있음
-  // - 총 6개 슬롯을 순차적으로 채움
   const topsRaw = window.SESSION_TOPS || [];
   const bottomsRaw = window.SESSION_BOTTOMS || [];
-  
+
   const tops = topsRaw.map(v => ({ ...toItemObj(v), category: "top" }));
   const bottoms = bottomsRaw.map(v => ({ ...toItemObj(v), category: "bottom" }));
-  
-  // 모든 아이템을 하나의 배열로 합치기 (상의 먼저, 그 다음 하의)
+
   const allItems = [...tops, ...bottoms].slice(0, 6);
-  
-  // 6개 슬롯에 순차적으로 채우기
+
   const slotData = [
     allItems[0] || { src: "", id: "", category: "" },
     allItems[1] || { src: "", id: "", category: "" },
@@ -102,14 +85,10 @@ let currentPreviewItem = null;
     img.loading = "eager";
     img.decoding = "async";
 
-    // ✅ (추가) product_id를 슬롯에 저장 (있을 때만)
-    // - select.html에서 data-product-id를 이미 넣어놨다면 건드리지 않음
-    // - 서버가 객체로 주입(id 포함)하면 여기서 자동 세팅됨
     if (!item.dataset.productId && id) {
       item.dataset.productId = id;
     }
-    
-    // ✅ (추가) category를 슬롯에 저장 (착용하기 버튼에서 사용)
+
     if (category) {
       item.dataset.category = category;
     }
@@ -117,136 +96,8 @@ let currentPreviewItem = null;
 })();
 
 /* =====================================================
-   ✅ 추가: 핸들 bump + 배지 업데이트 유틸
+   ✅ 하트 상태만 토글 (킵시트 기능 삭제)
 ===================================================== */
-function bumpKeepHandle() {
-  if (!edgeHandle) return;
-  edgeHandle.classList.remove("bump");
-  void edgeHandle.offsetWidth;
-  edgeHandle.classList.add("bump");
-}
-
-function updateKeepBadge(count, animate = false) {
-  if (!keepBadge) return;
-
-  keepBadge.textContent = String(count);
-
-  if (count > 0) {
-    keepBadge.classList.add("visible");
-
-    if (animate) {
-      keepBadge.classList.remove("pop");
-      void keepBadge.offsetWidth;
-      keepBadge.classList.add("pop");
-    }
-  } else {
-    keepBadge.classList.remove("visible");
-    keepBadge.classList.remove("pop");
-  }
-}
-
-edgeHandle.addEventListener("click", (e) => {
-  e.stopPropagation();
-  const isOpen = edgePanel.classList.toggle("open");
-  edgeHandle.classList.toggle("open", isOpen);
-});
-
-panelCloseButton.addEventListener("click", (e) => {
-  e.stopPropagation();
-  edgePanel.classList.remove("open");
-  edgeHandle.classList.remove("open");
-});
-
-function updateCount({ animateBadge = false } = {}) {
-  const count = panelList.querySelectorAll(".panel-item").length;
-  panelCount.textContent = count + "개";
-  updateKeepBadge(count, animateBadge);
-}
-
-function findPanelItemBySource(source) {
-  const items = panelList.querySelectorAll(".panel-item");
-  for (const item of items) {
-    if (item.dataset.source === source) return item;
-  }
-  return null;
-}
-
-function addToPanel(fromItem) {
-  const source = fromItem.dataset.name || "";
-  if (!source) return;
-
-  if (findPanelItemBySource(source)) return;
-
-  const panelItem = document.createElement("div");
-  panelItem.className = "panel-item";
-  panelItem.dataset.source = source;
-
-  // ✅ (추가) productId도 패널에 저장 (있을 때만)
-  const productId = fromItem.dataset.productId || "";
-  if (productId) panelItem.dataset.productId = productId;
-
-  const imageWrapper = document.createElement("div");
-  imageWrapper.className = "panel-item-image-wrapper";
-
-  const originalImg = fromItem.querySelector("img");
-  if (originalImg && originalImg.getAttribute("src")) {
-    const img = document.createElement("img");
-    img.src = originalImg.getAttribute("src");
-    img.alt = originalImg.getAttribute("alt") || source || "선택한 옷";
-    imageWrapper.appendChild(img);
-  } else {
-    const placeholder = document.createElement("div");
-    placeholder.textContent = source.replace("LOOK ", "") || "NO";
-    placeholder.style.fontSize = "11px";
-    placeholder.style.color = "#9ca3af";
-    imageWrapper.appendChild(placeholder);
-  }
-
-  const textBox = document.createElement("div");
-  textBox.className = "panel-item-text";
-
-  const name = document.createElement("div");
-  name.className = "panel-item-name";
-  name.textContent = source || "LOOK";
-
-  const meta = document.createElement("div");
-  meta.className = "panel-item-meta";
-  meta.textContent = "선택됨 · 피팅 후보";
-
-  textBox.appendChild(name);
-  textBox.appendChild(meta);
-
-  const removeBtn = document.createElement("button");
-  removeBtn.className = "panel-item-remove";
-  removeBtn.textContent = "×";
-
-  removeBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    panelItem.remove();
-
-    updateCount({ animateBadge: false });
-
-    const gridItem = [...clothesStrip.querySelectorAll(".cloth-item")].find(
-      ci => (ci.dataset.name || "") === source
-    );
-    if (gridItem) {
-      const heart = gridItem.querySelector(".cloth-fav");
-      if (heart) {
-        setHeartState(heart, false);
-      }
-    }
-  });
-
-  panelItem.appendChild(imageWrapper);
-  panelItem.appendChild(textBox);
-  panelItem.appendChild(removeBtn);
-
-  panelList.appendChild(panelItem);
-
-  updateCount({ animateBadge: true });
-  bumpKeepHandle();
-}
-
 function setHeartState(heartBtn, active) {
   if (active) {
     heartBtn.classList.add("active");
@@ -302,20 +153,25 @@ clothesStrip.querySelectorAll(".cloth-item").forEach(item => {
   if (favBtn) {
     favBtn.addEventListener("click", (e) => {
       e.stopPropagation();
-      const source = item.dataset.name || "";
+
+      const source = (item.dataset.name || "").trim();
+      if (!source) return;
+
+      // keep_sheet.js 로드 안 됐으면(또는 가드로 종료됐으면) 하트만 토글
+      if (!window.keepSheet) {
+        const isActive = favBtn.classList.contains("active");
+        setHeartState(favBtn, !isActive);
+        return;
+      }
 
       if (favBtn.classList.contains("active")) {
+        // ♥ -> ♡ : 킵시트에서 제거
         setHeartState(favBtn, false);
-        const panelItem = findPanelItemBySource(source);
-        if (panelItem) {
-          panelItem.remove();
-          updateCount({ animateBadge: false });
-        } else {
-          updateCount({ animateBadge: false });
-        }
+        window.keepSheet.removeFromPanelBySource(source);
       } else {
-        addToPanel(item);
+        // ♡ -> ♥ : 킵시트에 추가
         setHeartState(favBtn, true);
+        window.keepSheet.addToPanel(item); // item의 img/src/name을 keep_sheet가 읽어서 카드 생성
       }
     });
   }
@@ -330,7 +186,8 @@ clothesStrip.querySelectorAll(".cloth-item").forEach(item => {
   });
 });
 
-// 착용하기 버튼: 선택된 룩(없으면 LOOK 1)을 킵에 추가 후 로딩 화면으로 이동
+
+// 착용하기 버튼: 선택된 룩(없으면 LOOK 1)을 로딩 화면으로 이동
 if (tryOnButton) {
   tryOnButton.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -340,24 +197,20 @@ if (tryOnButton) {
       clothesStrip.querySelector('.cloth-item[data-name="LOOK 1"]');
 
     if (targetItem) {
-      addToPanel(targetItem);
-
       const imgEl = targetItem.querySelector(".cloth-image-wrapper img");
       const src = imgEl ? (imgEl.getAttribute("src") || "") : "";
 
       sessionStorage.setItem("tryon_top", "");
       sessionStorage.setItem("tryon_bottom", "");
 
-      // ✅ 수정: 슬롯 번호 대신 category 속성 사용
       const category = targetItem.dataset.category || "";
-      
+
       if (src) {
         if (category === "top") {
           sessionStorage.setItem("tryon_top", src);
         } else if (category === "bottom") {
           sessionStorage.setItem("tryon_bottom", src);
         } else {
-          // category가 없으면 기본값으로 top 설정
           sessionStorage.setItem("tryon_top", src);
         }
       }
@@ -366,23 +219,6 @@ if (tryOnButton) {
     window.location.href = "/loading";
   });
 }
-
-// 킵 패널 외 영역 클릭 시 킵 패널 접기 (오버레이 열려있으면 무시)
-mirrorContainer.addEventListener("click", (e) => {
-  if (previewOverlay.classList.contains("visible")) {
-    return;
-  }
-
-  if (!edgePanel.classList.contains("open")) return;
-
-  const clickInsidePanel = edgePanel.contains(e.target);
-  const clickOnHandle = edgeHandle.contains(e.target);
-
-  if (!clickInsidePanel && !clickOnHandle) {
-    edgePanel.classList.remove("open");
-    edgeHandle.classList.remove("open");
-  }
-});
 
 // 모든 버튼 공통 프레스 효과
 document.querySelectorAll("button").forEach(btn => {
@@ -403,138 +239,8 @@ document.querySelectorAll("button").forEach(btn => {
   });
 });
 
-/* ✅ 추가: 첫 로드 시 배지/카운트 초기 동기화 */
-updateCount({ animateBadge: false });
-
-/* =====================================================
-   ✅ KEEP 버튼 -> (서버로 keep 신호 전송) -> 팝업 -> 2초 후 닫기 -> welcome 이동
-   - UI/UX는 그대로
-   - 추가된 건 "신호 전송" 뿐
-===================================================== */
-const keepActionButton = document.getElementById("keepActionButton");
-const keepModalOverlay = document.getElementById("keepModalOverlay");
-const keepModalTitle = document.getElementById("keepModalTitle");
-
-let keepBusy = false;
-
-function openKeepModal(roomNumber = 7) {
-  if (!keepModalOverlay) return;
-
-  if (keepModalTitle) {
-    keepModalTitle.textContent = `${roomNumber}번 피팅룸으로 이동해주세요`;
-  }
-
-  keepModalOverlay.classList.remove("closing");
-  keepModalOverlay.classList.add("visible");
-  keepModalOverlay.setAttribute("aria-hidden", "false");
-}
-
-function closeKeepModal() {
-  if (!keepModalOverlay) return;
-
-  keepModalOverlay.classList.add("closing");
-
-  setTimeout(() => {
-    keepModalOverlay.classList.remove("visible");
-    keepModalOverlay.classList.remove("closing");
-    keepModalOverlay.setAttribute("aria-hidden", "true");
-  }, 280);
-}
-
-function goWelcome() {
-  window.location.href = "/";
-}
-
-// ✅ (수정) 서버에 KEEP 이벤트 생성
-async function postKeepToServer(productId) {
-  const body = {};
-
-  // ✅ FIX: 쿠키 의존 제거(아이폰/https/http 섞여도 안전)
-  if (window.SESSION_ID) {
-    body.session_id = window.SESSION_ID;
-  }
-
-  // productId가 있을 때만 보내면 서버에서 Product 매칭 가능
-  if (productId !== undefined && productId !== null && String(productId).trim() !== "") {
-    body.product_id = productId;
-  }
-
-  const res = await fetch("/api/keep", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  });
-
-  if (!res.ok) {
-    const t = await res.text();
-    throw new Error(`KEEP failed (${res.status}): ${t}`);
-  }
-  return res.json();
-}
-
-// ✅ (추가) 현재 킵시트에 담긴 상품 id 모으기
-function collectPanelProductIds() {
-  const panelItems = [...panelList.querySelectorAll(".panel-item")];
-  return panelItems.map(el => el.dataset.productId).filter(Boolean);
-}
-
-// ✅ (추가) 선택된/기본 룩에서 product_id 얻기
-function getFallbackSelectedProductId() {
-  const selected =
-    clothesStrip.querySelector(".cloth-item.selected") ||
-    clothesStrip.querySelector('.cloth-item[data-name="LOOK 1"]');
-
-  return selected ? (selected.dataset.productId || "") : "";
-}
-
-if (keepActionButton) {
-  keepActionButton.addEventListener("click", async (e) => {
-    e.stopPropagation();
-    if (keepBusy) return;
-    keepBusy = true;
-
-    try {
-      // ✅ 1) 서버로 KEEP 신호 전송 (킵시트에 담긴 것 기준)
-      let productIds = collectPanelProductIds();
-
-      // 킵시트가 비어있으면 선택된 룩(없으면 LOOK 1) 하나라도 전송
-      if (productIds.length === 0) {
-        const fallbackId = getFallbackSelectedProductId();
-        if (fallbackId) productIds = [fallbackId];
-      }
-
-      // ✅ FIX: product_id 없으면 keep 이벤트 생성 금지 (빈 카드 방지)
-      if (productIds.length === 0) {
-        alert("상품을 먼저 하트로 담아주세요. (product_id 없음)");
-        keepBusy = false;
-        return;
-      }
-
-      // 여러 개 담겼으면 여러 개 KEEP 이벤트 생성
-      await Promise.all(productIds.map(pid => postKeepToServer(pid)));
-
-      // ✅ 2) 기존 UX 그대로
-      openKeepModal(7);
-
-      setTimeout(() => {
-        closeKeepModal();
-
-        setTimeout(() => {
-          goWelcome();
-        }, 320);
-      }, 2000);
-
-    } catch (err) {
-      console.error(err);
-      alert("KEEP 전송 실패! (콘솔/Network 확인)");
-      keepBusy = false;
-      return;
-    }
-  });
-}
-
 // =====================================================
-// 🎙️ STT – Select Page (확정 스펙 6개)
+// 🎙️ STT – Select Page (킵시트 관련 커맨드 삭제 버전)
 // =====================================================
 (function () {
   var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -621,17 +327,7 @@ if (keepActionButton) {
     if (!items.length) return;
     if (n < 1 || n > items.length) return;
     var fav = items[n - 1].querySelector(".cloth-fav");
-    if (fav) fav.click();
-  }
-
-  function doOpenKeepSheet() {
-    if (!edgePanel.classList.contains("open")) {
-      edgeHandle.click();
-    }
-  }
-
-  function doCloseKeepSheet() {
-    panelCloseButton.click();
+    if (fav) fav.click(); // ✅ 하트 토글만 유지
   }
 
   function doTryOn() {
@@ -650,16 +346,6 @@ if (keepActionButton) {
   function handleVoice(raw) {
     var t = normalize(raw);
     console.log("🎙️ SELECT:", raw, "->", t);
-
-    if (/(킵시트|찜시트|킵목록|찜목록|목록).*(열|보여|켜|오픈)/.test(t)) {
-      doOpenKeepSheet();
-      return;
-    }
-
-    if (/(킵시트|찜시트|킵목록|찜목록|목록).*(닫|꺼|접|클로즈)/.test(t)) {
-      doCloseKeepSheet();
-      return;
-    }
 
     if (isPreviewOpen() && /(취소|아니야|닫아|그만)/.test(t)) {
       doPreviewCancel();
@@ -730,4 +416,136 @@ if (keepActionButton) {
   }
   document.addEventListener("click", primeOnce);
   document.addEventListener("touchstart", primeOnce, { passive: true });
+})();
+
+window.__keepSheetOnRemove = function(source) {
+  const gridItem = [...clothesStrip.querySelectorAll(".cloth-item")]
+    .find(ci => (ci.dataset.name || "").trim() === source);
+  if (!gridItem) return;
+
+  const heart = gridItem.querySelector(".cloth-fav");
+  if (heart) setHeartState(heart, false);
+};
+
+/* =====================================================
+   ✅ [추가된 부분] KEEP 버튼 클릭 -> staff 신호(/api/keep) -> /mirror 이동
+   - 기존 기능(STT/킵시트/프리뷰/착용하기) 절대 건드리지 않음
+===================================================== */
+(function bindKeepButtonRedirect() {
+  const keepBtn = document.getElementById("keepButton");
+  if (!keepBtn) {
+    console.warn("[select.js] keepButton not found");
+    return;
+  }
+
+  keepBtn.addEventListener("click", async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    try {
+      const payload = {
+        from: "select",
+        mirror_id: window.MIRROR_ID || null,
+        session_id: window.SESSION_ID || null,
+        product_id: null
+      };
+
+      const res = await fetch("/api/keep", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload)
+      });
+
+      if (!res.ok) {
+        console.warn("[select.js] /api/keep failed:", res.status);
+      }
+    } catch (err) {
+      console.warn("[select.js] /api/keep error:", err);
+    }
+
+    // ✅ 무조건 mirror(welcome)로 이동
+    window.location.href = "/mirror";
+  });
+})();
+
+/* =====================================================
+   ✅ selectAPI: STT에서 사용할 API 객체
+===================================================== */
+(function() {
+  function getItemByNumber(n) {
+    const items = Array.from(clothesStrip.querySelectorAll(".cloth-item"));
+    if (n < 1 || n > items.length) return null;
+    return items[n - 1];
+  }
+
+  function getFavButton(item) {
+    return item ? item.querySelector(".cloth-fav") : null;
+  }
+
+  window.selectAPI = {
+    // 착용하기
+    tryOn: function() {
+      if (tryOnButton) {
+        tryOnButton.click();
+      }
+    },
+
+    // KEEP 팝업 열기 (KEEP 버튼 클릭)
+    openKeepPopup: function() {
+      const keepBtn = document.getElementById("keepButton") || document.querySelector(".btn-keep");
+      if (keepBtn) {
+        keepBtn.click();
+      }
+    },
+
+    // 킵시트 열기
+    openKeepSheet: function() {
+      if (window.keepSheet && window.keepSheet.openPanel) {
+        window.keepSheet.openPanel();
+      } else {
+        const edgeHandle = document.getElementById("edgeHandle");
+        if (edgeHandle && !edgeHandle.classList.contains("open")) {
+          edgeHandle.click();
+        }
+      }
+    },
+
+    // 킵시트 닫기
+    closeKeepSheet: function() {
+      if (window.keepSheet && window.keepSheet.closePanel) {
+        window.keepSheet.closePanel();
+      } else {
+        const panelCloseButton = document.getElementById("panelCloseButton");
+        if (panelCloseButton) {
+          panelCloseButton.click();
+        }
+      }
+    },
+
+    // num번 아이템 킵 토글
+    toggleKeep: function(num) {
+      const item = getItemByNumber(num);
+      if (!item) return;
+      const favBtn = getFavButton(item);
+      if (favBtn) {
+        favBtn.click();
+      }
+    },
+
+    // num번 아이템 선택 토글 (프리뷰 열기/닫기)
+    toggleSelect: function(num) {
+      const item = getItemByNumber(num);
+      if (!item) return;
+      
+      if (item.classList.contains("selected")) {
+        item.classList.remove("selected");
+        if (previewOverlay && previewOverlay.classList.contains("visible")) {
+          closePreview();
+        }
+      } else {
+        openPreview(item);
+      }
+    }
+  };
 })();

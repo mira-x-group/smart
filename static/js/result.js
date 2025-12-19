@@ -1,39 +1,82 @@
-const btnBack = document.getElementById("btnBack");
+/* static/js/result.js
+   Result 페이지 전용
+   - 결과 이미지 표시 (#resultImg)
+   - 셀렉으로 돌아가기 (쿼리 파라미터 유지)
+   - 킵시트 로직은 keep_sheet.js가 처리
+*/
+(() => {
+  const resultImg = document.getElementById("resultImg");
+  const btnBack = document.getElementById("btnBack");
 
-btnBack.addEventListener("click", () => {
-  // TODO: 실제 셀렉 화면 파일 이름/경로로 수정
-  // 예: select.html, select_screen.html 등
-  window.location.href = "select.html";
-});
+  // -----------------------------
+  // 1) 결과 이미지 주입
+  // -----------------------------
+  function normalizeUrl(raw) {
+    if (!raw) return null;
 
-// ───── 킵 패널 동작 (열기/닫기만) ─────
-const edgePanel   = document.getElementById("edgePanel");
-const edgeHandle  = document.getElementById("edgeHandle");
-const panelList   = document.getElementById("panelList");
-const panelCount  = document.getElementById("panelCount");
-const panelCloseButton = document.getElementById("panelCloseButton");
-const feedingButton    = document.getElementById("feedingButton");
+    // 이미 절대 URL이면 그대로
+    if (/^https?:\/\//i.test(raw)) return raw;
 
-function updateCount() {
-  const count = panelList.querySelectorAll(".panel-item").length;
-  panelCount.textContent = count + "개";
-}
+    // "/static/..." 같은 절대 경로면 origin 붙임
+    if (raw.startsWith("/")) return window.location.origin + raw;
 
-edgeHandle.addEventListener("click", () => {
-  const isOpen = edgePanel.classList.toggle("open");
-  edgeHandle.classList.toggle("open", isOpen);
-});
+    // "static/..." 같은 상대 경로면 "/" 붙여서 처리
+    if (raw.startsWith("static/")) return window.location.origin + "/" + raw;
 
-panelCloseButton.addEventListener("click", () => {
-  edgePanel.classList.remove("open");
-  edgeHandle.classList.remove("open");
-});
-
-feedingButton.addEventListener("click", () => {
-  const count = panelList.querySelectorAll(".panel-item").length;
-  if (count === 0) {
-    alert("먼저 셀렉 화면에서 룩을 킵해 주세요.");
-    return;
+    // 그 외는 그대로(쿼리로 넘어오는 경우가 많아서)
+    return raw;
   }
-  alert("여기서 선택한 룩을 기반으로 다른 결과를 보여주는 기능을 연결하면 됩니다.");
-});
+
+  function setResultImage(rawUrl) {
+    if (!resultImg) return;
+    const url = normalizeUrl(rawUrl);
+    if (!url) return;
+
+    // 캐시 방지 (방금 생성된 결과가 안 바뀌는 경우 대비)
+    const u = new URL(url, window.location.origin);
+    u.searchParams.set("_t", Date.now().toString());
+
+    resultImg.style.display = "block";
+    resultImg.src = u.toString();
+  }
+
+  // 우선순위: querystring → window 전역(서버가 내려줄 경우)
+  const qs = new URLSearchParams(window.location.search);
+  const imgParam =
+    qs.get("image") ||
+    qs.get("image_url") ||
+    qs.get("result_url") ||
+    qs.get("resultUrl");
+
+  if (imgParam) {
+    setResultImage(imgParam);
+  } else if (window.RESULT_IMAGE_URL) {
+    setResultImage(window.RESULT_IMAGE_URL);
+  }
+  // (여기서 더 필요하면: "현재 세션의 최신 결과 API" 호출을 추가하면 됨)
+
+  // -----------------------------
+  // 2) 셀렉으로 돌아가기 (세션/미러 파라미터 유지)
+  // -----------------------------
+  if (btnBack) {
+    btnBack.addEventListener("click", () => {
+      const cur = new URL(window.location.href);
+
+      const sessionId =
+        cur.searchParams.get("session_id") ||
+        cur.searchParams.get("sessionId") ||
+        cur.searchParams.get("sid");
+
+      const mirrorId =
+        cur.searchParams.get("mirror_id") ||
+        cur.searchParams.get("mirrorId") ||
+        cur.searchParams.get("mid");
+
+      const next = new URL("/select", window.location.origin);
+      if (sessionId) next.searchParams.set("session_id", sessionId);
+      if (mirrorId) next.searchParams.set("mirror_id", mirrorId);
+
+      window.location.href = next.toString();
+    });
+  }
+})();

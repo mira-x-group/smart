@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Smart Mirror - Select Screen (Vertical)</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/keep_sheet.css') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/select.css') }}">
 </head>
 <body>
@@ -17,21 +18,21 @@
 
         <div class="captured-photo-wrapper" style="
             position: absolute;
-            top: 0;              /* 화면 맨 위부터 시작 */
-            bottom: 230px;       /* 하단 썸네일 위까지 영역 확보 */
+            top: 0;
+            bottom: 230px;
             left: 0;
             width: 100%;
             display: flex;
             justify-content: center;
             align-items: center;
-            z-index: 0;          /* 텍스트(10)보다 낮은 숫자라 뒤로 감 */
+            z-index: 0;
             pointer-events: none;
             overflow: hidden;
         ">
             <img id="capturedPhoto" src="" alt="촬영된 사진" style="
                 width: 100%;
                 height: 100%;
-                object-fit: cover;   /* 비율 유지하며 꽉 채움 */
+                object-fit: cover;
                 border-radius: 0 0 12px 12px;
                 display: none;
             ">
@@ -42,7 +43,7 @@
           position: absolute;
           bottom: 250px;
           right: 30px;
-          z-index: 20;        /* 텍스트(10)보다 더 위에 */
+          z-index: 20;
           text-align: right;
           width: auto;
       ">
@@ -51,10 +52,10 @@
         ">착용하기</button>
       </div>
 
-      <!-- ✅ 수정: cloth-number를 cloth-image-wrapper 밖으로 이동 -->
+      <!-- ✅ cloth-number를 cloth-image-wrapper 밖으로 이동 -->
       <div class="clothes-strip" id="clothesStrip">
 
-        <!-- ✅ 수정: 순차적으로 채우기 위해 상의와 하의를 합친 배열 사용 -->
+        <!-- ✅ 상의/하의 합쳐서 6개까지만 -->
         {% set all_items = (tops if tops is defined else []) + (bottoms if bottoms is defined else []) %}
         {% set all_items = all_items[:6] %}
 
@@ -102,7 +103,7 @@
 
       </div>
 
-      <!-- ✅ 여기만 수정됨: keepBadge 추가 -->
+      <!-- keepBadge -->
       <div class="edge-handle" id="edgeHandle">
         <span class="keep-badge" id="keepBadge">0</span>
       </div>
@@ -117,22 +118,15 @@
             <button class="panel-close" id="panelCloseButton">‹</button>
           </div>
         </div>
+
         <div class="panel-list" id="panelList"></div>
 
         <!-- ✅ KEEP 버튼 영역 (킵시트 하단) -->
         <div class="keep-footer">
-          <button class="btn-keep" id="keepActionButton" type="button">KEEP</button>
+          <button class="btn-keep" id="keepButton" type="button">KEEP</button>
           <div class="keep-footer-caption">
             가상 피팅을 종료하고 제품을 피팅룸으로 준비해드립니다
           </div>
-        </div>
-      </div>
-
-      <!-- ✅ KEEP 팝업 오버레이 -->
-      <div class="keep-modal-overlay" id="keepModalOverlay" aria-hidden="true">
-        <div class="keep-modal" id="keepModal" role="dialog" aria-modal="true">
-          <div class="keep-modal-title" id="keepModalTitle">7번 피팅룸으로 이동해주세요</div>
-          <div class="keep-modal-sub">직원이 제품을 준비해드리겠습니다</div>
         </div>
       </div>
 
@@ -153,27 +147,32 @@
     </div>
   </div>
 
-  <!-- ✅ 데이터만 JS로 주입 (UI 영향 없음) -->
+  <!-- 데이터 주입 -->
   <script>
     window.SESSION_TOPS = {{ tops | tojson | safe }};
     window.SESSION_BOTTOMS = {{ bottoms | tojson | safe }};
     window.SESSION_ID = {{ session_id | tojson | safe }};
   </script>
 
+  <!-- ✅ STT 기본 라이브러리 (순서 중요) -->
+  <script src="{{ url_for('static', filename='js/stt_core.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/stt_parser.js') }}"></script>
+  
+  <!-- ✅ 순서 중요: keep_sheet 먼저, select 나중 -->
+  <script src="{{ url_for('static', filename='js/keep_sheet.js') }}"></script>
   <script src="{{ url_for('static', filename='js/select.js') }}"></script>
+  
+  <!-- ✅ Select 페이지 STT -->
+  <script src="{{ url_for('static', filename='js/select_stt.js') }}"></script>
 
   <script>
     document.addEventListener("DOMContentLoaded", () => {
-      // 1. capture 페이지에서 저장한 사진 데이터 가져오기
       const photoData = localStorage.getItem("capturedPhoto");
-      
-      // 2. 사진을 넣을 이미지 태그 찾기
       const targetImage = document.getElementById("capturedPhoto");
 
-      // 3. 데이터가 있으면 이미지 표시
       if (photoData && targetImage) {
         targetImage.src = photoData;
-        targetImage.style.display = "block"; // 숨겨뒀던 이미지를 보이게 함
+        targetImage.style.display = "block";
       } else {
         console.log("저장된 사진이 없습니다.");
       }

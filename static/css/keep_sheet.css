@@ -1,0 +1,448 @@
+/* keep_sheet.css */
+
+/* 🔹 패널 핸들 */
+.edge-handle {
+  position: absolute;
+  top: 41%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 12px;
+  height: 110px;
+  background: linear-gradient(to bottom, #4f46e5, #a855f7);
+  border-radius: 8px 0 0 8px;
+  box-shadow:
+    -1px 0 0 rgba(191, 219, 254, 0.6),
+    -6px 0 18px rgba(79, 70, 229, 0.75);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3;
+  transition: right 0.25s ease, transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.edge-handle.open {
+  right: 75%;
+  transform: translate(calc(100% + 4px), -50%) scaleX(-1);
+  box-shadow:
+    -1px 0 0 rgba(191, 219, 254, 0.75),
+    -2px 0 12px rgba(79, 70, 229, 0.9);
+}
+
+.edge-handle::before {
+  content: "";
+  width: 3px;
+  height: 42%;
+  border-radius: 999px;
+  background: rgba(248, 250, 252, 0.9);
+}
+
+/* 🔹 하트 킵 시 핸들 Nudge 애니메이션 */
+.edge-handle.handle-nudge {
+  animation: handleNudge 0.4s ease-in-out;
+}
+
+@keyframes handleNudge {
+  0% {
+    transform: translateY(-50%) translateX(0);
+  }
+
+  40% {
+    transform: translateY(-50%) translateX(-12px);
+  }
+
+  /* 열림 */
+  100% {
+    transform: translateY(-50%) translateX(0);
+  }
+
+  /* 원복 */
+}
+
+/* 🔹 킵 뱃지 */
+.keep-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  /* 핸들 바깥쪽에 걸치도록 */
+  background: #ef4444;
+  /* Red-500 */
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 99px;
+  display: flex;
+  /* keep_sheet.js에서 none/flex 토글 */
+  align-items: center;
+  justify-content: center;
+  padding: 0 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  transition: opacity 0.2s;
+}
+
+/* 뱃지 Pop 애니메이션 */
+.keep-badge.badge-pop {
+  animation: badgePop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badgePop {
+  0% {
+    transform: scale(0.9);
+  }
+
+  50% {
+    transform: scale(1.15);
+  }
+
+  100% {
+    transform: scale(1.0);
+  }
+}
+
+/* 패널 열렸을 때 뱃지 위치 조정 (핸들 방향 바뀜 고려) */
+.edge-handle.open .keep-badge {
+  /* 핸들이 뒤집히므로(scaleX(-1)), 뱃지도 내용이 뒤집히지 않게 처리 필요하거나 위치 조정 필요 */
+  /* 여기선 단순 위치 조정보단 transform scaleX(-1) 풀어줘야 글자가 정방향 */
+  transform: scaleX(-1);
+  right: auto;
+  left: -6px;
+}
+
+.edge-handle.open .keep-badge.badge-pop {
+  animation: badgePopOpen 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badgePopOpen {
+  0% {
+    transform: scaleX(-1) scale(0.9);
+  }
+
+  50% {
+    transform: scaleX(-1) scale(1.15);
+  }
+
+  100% {
+    transform: scaleX(-1) scale(1.0);
+  }
+}
+
+/* 🔹 패널 – 가로 75% */
+.edge-panel {
+  position: absolute;
+  top: 41%;
+  right: 0;
+  transform: translate(100%, -50%);
+  width: 75%;
+  height: 50%;
+  background: radial-gradient(circle at top, rgba(30, 64, 175, 0.4), rgba(15, 23, 42, 0.96));
+  box-shadow:
+    -1px 0 0 rgba(148, 163, 184, 0.6),
+    -18px 0 40px rgba(15, 23, 42, 0.95);
+  border-radius: 18px 0 0 18px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  padding: 16px 16px 16px;
+  z-index: 2;
+  pointer-events: none;
+  opacity: 0;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+.edge-panel.open {
+  transform: translate(0, -50%);
+  pointer-events: auto;
+  opacity: 1;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 6px;
+}
+
+.panel-title-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.panel-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #e5e7eb;
+  letter-spacing: 0.04em;
+}
+
+.panel-header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel-count {
+  font-size: 11px;
+  color: #cbd5f5;
+}
+
+.panel-close {
+  width: 20px;
+  height: 20px;
+  border-radius: 999px;
+  border: none;
+  background: rgba(15, 23, 42, 0.8);
+  color: #e5e7eb;
+  font-size: 13px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.9);
+}
+
+.panel-close:hover {
+  background: rgba(30, 64, 175, 0.9);
+}
+
+.panel-list {
+  flex: 1;
+  overflow-y: auto;
+  padding-right: 4px;
+  margin-bottom: 8px;
+}
+
+.panel-list::-webkit-scrollbar {
+  width: 4px;
+}
+
+.panel-list::-webkit-scrollbar-thumb {
+  border-radius: 99px;
+  background: rgba(148, 163, 184, 0.7);
+}
+
+.panel-item {
+  position: relative;
+  border-radius: 12px;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+  padding: 4px;
+  margin-bottom: 8px;
+  background: linear-gradient(to right,
+      rgba(15, 23, 42, 0.9),
+      rgba(30, 64, 175, 0.6));
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.9);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.panel-item-image-wrapper {
+  width: 56px;
+  height: 56px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #0b1120;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel-item-image-wrapper img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: cover;
+}
+
+.panel-item-text {
+  flex: 1;
+  font-size: 11px;
+  color: #e5e7eb;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.panel-item-name {
+  font-weight: 500;
+}
+
+.panel-item-meta {
+  font-size: 10px;
+  color: #9ca3af;
+}
+
+.panel-item-remove {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #ef4444;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 11px;
+  cursor: pointer;
+  box-shadow: 0 2px 4px rgba(185, 28, 28, 0.6);
+}
+
+.panel-item-remove:hover {
+  background: #dc2626;
+}
+
+/* 킵 패널 하단 버튼 영역 */
+.panel-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.room-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.room-actions button {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  padding: 8px 10px;
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* 피팅룸 현황 / 픽업 요청 컬러 */
+.btn-room-status,
+.btn-pickup-request {
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  color: #f9fafb;
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.85);
+}
+
+.btn-room-status:active,
+.btn-pickup-request:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 10px rgba(55, 48, 163, 0.8);
+}
+
+@media (max-width: 500px) {
+  .edge-panel {
+    width: 90%;
+  }
+
+  .edge-handle.open {
+    right: 90%;
+  }
+}
+
+/* 🔹 하단 KEEP 버튼 영역 */
+.panel-footer {
+  margin-top: auto;
+  /* 상단 리스트와 분리되어 바닥에 붙음 */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.btn-keep {
+  width: auto;
+  /* fit content */
+  min-width: 120px;
+  border-radius: 999px;
+  /* 완전 타원형 */
+  padding: 12px 32px;
+  border: none;
+  font-size: 15px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  box-shadow: 0 4px 16px rgba(79, 70, 229, 0.6);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-keep:active {
+  transform: scale(0.98);
+  box-shadow: 0 2px 8px rgba(55, 48, 163, 0.8);
+}
+
+.keep-desc {
+  font-size: 11px;
+  color: #ffffff;
+  /* 흰색 변경 */
+  text-align: center;
+  white-space: nowrap;
+  /* 한 줄 강제 */
+  opacity: 0.8;
+}
+
+/* 🔹 킵 완료 팝업 오버레이 */
+.keep-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+}
+
+.keep-popup-overlay.visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* 🔹 팝업 컨테이너 (사각형) */
+.keep-popup-box {
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  border-radius: 24px;
+  padding: 40px 60px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  transform: scale(0.95);
+  transition: transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.keep-popup-overlay.visible .keep-popup-box {
+  transform: scale(1);
+}
+
+/* 🔹 팝업 텍스트 */
+.keep-popup-title {
+  font-size: 24px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.keep-popup-desc {
+  font-size: 15px;
+  color: #94a3b8;
+  font-weight: 400;
+}
