@@ -17,6 +17,12 @@
 <!-- 텍스트 -->
 <div class="loading-text">Loading</div>
 
+<!-- ✅ 3번 핵심: session_id / mirror_id 전역 주입 (UI 영향 없음) -->
+<script>
+  window.SESSION_ID = "{{ session_id or '' }}";
+  window.MIRROR_ID  = "{{ mirror_id or '' }}";
+</script>
+
 <!-- JS 연결 -->
 <script src="{{ url_for('static', filename='js/loading.js') }}"></script>
 </body>

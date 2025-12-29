@@ -402,8 +402,9 @@ def select_page():
 # -----------------------------
 @app.route("/loading")
 def loading_page():
-    return render_template("loading.html")
-
+    mirror_id = request.args.get("mirror_id")
+    session_id = request.args.get("session_id")
+    return render_template("loading.html", mirror_id=mirror_id, session_id=session_id)
 
 # -----------------------------
 # 7-0) Gemini 텍스트 테스트용
@@ -514,9 +515,19 @@ def tryon():
 @app.route("/result")
 def result_page():
     image_path = request.args.get("image")
+    session_id = request.args.get("session_id")
+    mirror_id = request.args.get("mirror_id")
+
     if not image_path:
         return "이미지가 없습니다.", 404
-    return render_template("result.html", result_image=image_path)
+
+    return render_template(
+        "result.html",
+        result_image=image_path,
+        session_id=session_id,
+        mirror_id=mirror_id
+    )
+
 
 
 # -----------------------------
@@ -1291,11 +1302,8 @@ def admin_db_view():
 # -----------------------------
 if __name__ == "__main__":
     port = int(os.getenv("PORT", 5001))
-    debug = os.getenv("FLASK_DEBUG", "True").lower() == "true"
-
     app.run(
         host="0.0.0.0",
         port=port,
-        debug=debug,
-        ssl_context="adhoc",   # ✅ HTTPS 임시 인증서
+        debug=False
     )

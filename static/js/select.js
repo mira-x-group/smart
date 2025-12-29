@@ -85,6 +85,8 @@ let currentPreviewItem = null;
     img.loading = "eager";
     img.decoding = "async";
 
+    // ✅ select.html이 이미 data-product-id를 박아주지만,
+    // 서버 주입 데이터에 id가 있으면 혹시 비어있을 때만 보강
     if (!item.dataset.productId && id) {
       item.dataset.productId = id;
     }
@@ -216,7 +218,11 @@ if (tryOnButton) {
       }
     }
 
-    window.location.href = "/loading";
+   const qs = [];
+if (window.SESSION_ID) qs.push("session_id=" + encodeURIComponent(window.SESSION_ID));
+if (window.MIRROR_ID)  qs.push("mirror_id=" + encodeURIComponent(window.MIRROR_ID));
+window.location.href = "/loading" + (qs.length ? "?" + qs.join("&") : "");
+
   });
 }
 
@@ -385,11 +391,11 @@ document.querySelectorAll("button").forEach(btn => {
     if (text) handleVoice(text);
   };
 
-  stt.onerror = function (e) {
-    console.warn("STT error(select):", e);
-    busy = false;
-    restart();
-  };
+  stt.onerror = (e) => {
+  if (e.error === "aborted") return; // ✅ 정상 중단/경쟁 상황은 무시
+  console.warn("STT error(select):", e);
+};
+
 
   function start() {
     if (busy) return;
@@ -428,9 +434,34 @@ window.__keepSheetOnRemove = function(source) {
 };
 
 /* =====================================================
-   ✅ [추가된 부분] KEEP 버튼 클릭 -> staff 신호(/api/keep) -> /mirror 이동
+   ✅ KEEP 버튼 클릭 -> staff 신호(/api/keep) -> /mirror 이동
    - 기존 기능(STT/킵시트/프리뷰/착용하기) 절대 건드리지 않음
+   - ✅ product_id만 select.html의 data-product-id에서 뽑아서 전송
 ===================================================== */
+
+// ✅ select.html 구조에 맞게 product_id 뽑기 (UI/UX 무변경)
+function getProductIdForKeep() {
+  if (!clothesStrip) return null;
+
+  // 1) 선택된 룩 우선
+  const selected = clothesStrip.querySelector(".cloth-item.selected");
+  const pid1 = selected && selected.dataset ? (selected.dataset.productId || "") : "";
+  if (pid1 && String(pid1).trim() !== "") return pid1;
+
+  // 2) 하트(active) 된 룩 우선
+  const activeFav = clothesStrip.querySelector(".cloth-fav.active");
+  const activeItem = activeFav ? activeFav.closest(".cloth-item") : null;
+  const pid2 = activeItem && activeItem.dataset ? (activeItem.dataset.productId || "") : "";
+  if (pid2 && String(pid2).trim() !== "") return pid2;
+
+  // 3) LOOK 1 fallback
+  const look1 = clothesStrip.querySelector('.cloth-item[data-name="LOOK 1"]');
+  const pid3 = look1 && look1.dataset ? (look1.dataset.productId || "") : "";
+  if (pid3 && String(pid3).trim() !== "") return pid3;
+
+  return null;
+}
+
 (function bindKeepButtonRedirect() {
   const keepBtn = document.getElementById("keepButton");
   if (!keepBtn) {
@@ -447,7 +478,8 @@ window.__keepSheetOnRemove = function(source) {
         from: "select",
         mirror_id: window.MIRROR_ID || null,
         session_id: window.SESSION_ID || null,
-        product_id: null
+        // ✅ 핵심: product_id를 null이 아니라 실제 값으로
+        product_id: getProductIdForKeep()
       };
 
       const res = await fetch("/api/keep", {
@@ -537,7 +569,7 @@ window.__keepSheetOnRemove = function(source) {
     toggleSelect: function(num) {
       const item = getItemByNumber(num);
       if (!item) return;
-      
+
       if (item.classList.contains("selected")) {
         item.classList.remove("selected");
         if (previewOverlay && previewOverlay.classList.contains("visible")) {
