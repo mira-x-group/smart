@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>Mira X · NFC Receive</title>
+
+  <!-- Flask static: CSS -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/nfc.css') }}">
+</head>
+<body>
+  <div class="mirror-frame">
+    <div class="mirror-container">
+      <div class="top-bar">
+        <div class="brand">MIRA X</div>
+        <div>NFC LINK</div>
+      </div>
+
+      <div class="screen-main" id="screenMain">
+        <!-- 에너지 코어 그라데이션 원 -->
+        <div class="namedrop-orb" id="namedropOrb"></div>
+
+        <!-- 파동 레이어 (에너지 물결) -->
+        <div class="wave-layer" id="waveLayer">
+          <span class="wave" style="--delay:0s;"></span>
+          <span class="wave" style="--delay:0.12s;"></span>
+          <span class="wave" style="--delay:0.24s;"></span>
+        </div>
+
+        <!-- 옷 그리드 (3:4, 한 줄 4개) -->
+        <div class="looks-panel" id="looksPanel">
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">1</div></div></div>
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">2</div></div></div>
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">3</div></div></div>
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">4</div></div></div>
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">5</div></div></div>
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">6</div></div></div>
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">7</div></div></div>
+          <div class="look-item"><div class="look-thumb"><div class="look-thumb-num">8</div></div></div>
+        </div>
+      </div>
+
+      <div class="bottom-bar"></div>
+    </div>
+  </div>
+
+  <!-- ✅ nfc.js가 mirror_id / session_id를 읽을 수 있게 주입 -->
+  <script>
+    window.MIRROR_CTX = {
+      mirror_id: "{{ mirror_id or '' }}",
+      session_id: "{{ session_id or '' }}"
+    };
+  </script>
+
+  <!-- Flask static: JS -->
+  <script src="{{ url_for('static', filename='js/nfc.js') }}"></script>
+</body>
+</html>

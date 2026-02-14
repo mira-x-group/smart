@@ -1,35 +1,69 @@
-{% extends "base.html" %}
+<!DOCTYPE html>
+<html lang="ko">
 
-{% block title %}Aurora Result Page{% endblock %}
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mira X · 피팅 결과</title>
 
-{% block css %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
-{% endblock %}
+  <!-- Result 전용 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/result.css') }}">
+  <!-- 킵시트 공용 -->
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/keep_sheet.css') }}">
+</head>
 
-{% block content %}
-    <div class="aurora"></div>
-    
-    <div class="content-wrapper">
+<body>
+  <div class="mirror-frame">
+    <div class="mirror-container">
 
-        <div class="photo-frame">
-            {% if result_image %}
-            <img 
-                src="{{ result_image }}" 
-                alt="결과 이미지"
-                style="max-width: 100%; max-height: 100%; object-fit: contain;">
-            {% else %}
-            <span class="placeholder-text">[ 결과 사진 영역 ]</span>
-            {% endif %}
+      <!-- ✅ 중앙: 합성 결과 영역 -->
+      <div class="screen-result" id="resultArea">
+        <!-- ✅ 결과 이미지는 기존 영역에 표시 (새 칸 생성 X) -->
+        <img id="resultImg" alt="피팅 결과" />
+      </div>
+
+      <!-- ✅ (Select 구조 그대로) 킵시트 핸들 -->
+      <div class="edge-handle" id="edgeHandle"></div>
+
+      <!-- ✅ (Select 구조 그대로) 킵시트 패널 -->
+      <div class="edge-panel" id="edgePanel">
+        <div class="panel-header">
+          <div class="panel-title-wrap">
+            <div class="panel-title">선택한 룩</div>
+          </div>
+          <div class="panel-header-right">
+            <div class="panel-count" id="panelCount">0개</div>
+            <button class="panel-close" id="panelCloseButton" type="button">‹</button>
+          </div>
         </div>
 
-        <div class="button-container">
-            <button class="btn btn-retry" onclick="window.location.href='/select'">
-                다시 입어보기
-            </button>
-            <button class="btn btn-exit" onclick="window.location.href='/'">
-                종료
-            </button>
+        <div class="panel-list" id="panelList"></div>
+
+        <div class="panel-footer">
+          <button class="btn-keep" type="button">KEEP</button>
+          <div class="keep-desc">가상피팅을 종료하고 직원이 제품을 준비해드립니다</div>
         </div>
+      </div>
+
+      <!-- ✅ 하단: 셀렉으로 돌아가기 -->
+      <div class="bottom-area">
+        <button class="btn-back" id="btnBack" type="button">셀렉으로 돌아가기</button>
+      </div>
 
     </div>
-{% endblock %}
+  </div>
+
+  <!-- ✅ STT 기본 라이브러리 (순서 중요) -->
+  <script src="{{ url_for('static', filename='js/stt_core.js') }}"></script>
+  <script src="{{ url_for('static', filename='js/stt_parser.js') }}"></script>
+  
+  <!-- ✅ 킵시트 공용 JS (반드시 먼저) -->
+  <script src="{{ url_for('static', filename='js/keep_sheet.js') }}"></script>
+  <!-- ✅ Result 전용 JS -->
+  <script src="{{ url_for('static', filename='js/result.js') }}"></script>
+  
+  <!-- ✅ Result 페이지 STT -->
+  <script src="{{ url_for('static', filename='js/result_stt.js') }}"></script>
+</body>
+
+</html>

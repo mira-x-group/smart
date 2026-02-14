@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>KEEP한 상품</title>
+
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #fff;
+      color: #111;
+      font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans KR", Arial, sans-serif;
+    }
+
+    .container {
+      max-width: 430px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    h2 {
+      margin: 6px 0 6px;
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.2px;
+    }
+
+    .sub {
+      margin: 0 0 14px;
+      font-size: 13px;
+      color: #666;
+      line-height: 1.35;
+    }
+
+    .message {
+      margin: 10px 0 12px;
+      padding: 10px 12px;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background: #fafafa;
+      font-size: 13px;
+      color: #333;
+    }
+
+    /* ✅ 3열 그리드 (위 3 / 아래 3) */
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .card {
+      position: relative;
+      border: 1px solid #eee;
+      border-radius: 14px;
+      padding: 10px;
+      background: #fff;
+    }
+
+    /* ✅ 큰 네모 이미지 영역 */
+    .imgbox {
+      width: 100%;
+      aspect-ratio: 1 / 1; /* 네모 */
+      border-radius: 12px;
+      overflow: hidden;
+      background: #f3f3f3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .imgbox img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+
+    .name {
+      margin-top: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.2;
+      min-height: 28px; /* 2줄 공간 */
+      word-break: keep-all;
+    }
+
+    .price {
+      margin-top: 4px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #222;
+    }
+
+    /* ✅ 이미지 오른쪽 위 X 삭제 버튼 */
+    .delete-form {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      margin: 0;
+      z-index: 3;
+    }
+
+    .xbtn {
+      width: 26px;
+      height: 26px;
+      border-radius: 999px;
+      border: 1px solid #e2e2e2;
+      background: rgba(255,255,255,0.95);
+      font-size: 18px;
+      line-height: 22px;
+      cursor: pointer;
+      padding: 0;
+    }
+
+    /* 빈 슬롯(최대 6칸 고정 유지용) */
+    .card.empty {
+      opacity: 0.45;
+    }
+    .imgbox.placeholder {
+      background: #fafafa;
+      border: 1px dashed #e2e2e2;
+    }
+    .placeholder-text {
+      color: #9a9a9a;
+      font-weight: 600;
+    }
+
+    /* 작은 화면 대응(너무 좁으면 2열로) */
+    @media (max-width: 360px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h2>KEEP한 상품</h2>
+    <p class="sub">마음껏 담아보세요 !</p>
+
+    {% if message %}
+      <div class="message">{{ message }}</div>
+    {% endif %}
+
+    <div class="grid">
+      {# ✅ 찍은 순서대로 products가 들어온다고 가정 (지금 코드 구조 그대로) #}
+      {% for p in products[:6] %}
+        <div class="card" data-product-id="{{ p.id }}">
+          <form class="delete-form" method="POST" action="{{ url_for('mobile_session_delete', product_id=p.id) }}">
+            <button type="submit" class="xbtn" aria-label="삭제">×</button>
+          </form>
+
+          <div class="imgbox">
+            <img src="{{ url_for('static', filename=p.image_path) }}" alt="{{ p.name }}">
+          </div>
+
+          <div class="name">{{ p.name }}</div>
+          <div class="price">{{ "{:,}".format(p.price or 0) }}원</div>
+        </div>
+      {% endfor %}
+
+      {# ✅ 6칸 고정: 부족하면 빈 카드로 채움 (레이아웃 유지) #}
+      {% for _ in range(6 - (products[:6]|length)) %}
+        <div class="card empty">
+          <div class="imgbox placeholder"></div>
+          <div class="name placeholder-text">비어있음</div>
+          <div class="price placeholder-text">&nbsp;</div>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>세션 디버그</title>
+</head>
+<body>
+<div style="max-width: 800px; margin: 24px auto; padding: 16px;">
+  <h1 style="margin-bottom: 16px;">세션 디버그</h1>
+
+  {% if message %}
+    <p style="padding: 12px; background: #ffecec; border-radius: 6px; color: #a33;">
+      {{ message }}
+    </p>
+  {% endif %}
+
+  {% if session %}
+    <h2 style="margin-top: 16px;">세션 정보</h2>
+    <ul>
+      <li><strong>sessionId (DB pk & 쿠키 값):</strong> {{ session.id }}</li>
+      <li><strong>created_at:</strong> {{ session.created_at }}</li>
+      <li><strong>raw clicked_products(JSON):</strong> {{ session.clicked_products }}</li>
+    </ul>
+
+    <h2 style="margin-top: 24px;">cart_items (build_cart_items 결과)</h2>
+
+    {% if not cart_items %}
+      <p>장바구니 상품이 없습니다.</p>
+    {% else %}
+      <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 14px;">
+        <thead style="background: #f0f0f0;">
+          <tr>
+            <th>#(index)</th>
+            <th>productId</th>
+            <th>name</th>
+            <th>size</th>
+            <th>color</th>
+            <th>timestamp (session.created_at)</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart_items %}
+            <tr>
+              <td>{{ item.id }}</td>
+              <td>{{ item.productId }}</td>
+              <td>{{ item.name }}</td>
+              <td>{{ item.size }}</td>
+              <td>{{ item.color }}</td>
+              <td>{{ item.timestamp }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% else %}
+    <p>세션이 없습니다. (DB에서 삭제되었거나 아직 생성되지 않았을 수 있습니다.)</p>
+  {% endif %}
+
+  <h2 style="margin-top: 32px;">스캔 로그 (ScanLog)</h2>
+
+  {% if logs and logs|length > 0 %}
+    <table border="1" cellpadding="6" cellspacing="0" style="border-collapse: collapse; width: 100%; font-size: 13px;">
+      <thead style="background: #f0f0f0;">
+        <tr>
+          <th>ID</th>
+          <th>session_id</th>
+          <th>product_id</th>
+          <th>created_at</th>
+          <th>User-Agent</th>
+          <th>URL</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for log in logs %}
+          <tr>
+            <td>{{ log.id }}</td>
+            <td>{{ log.session_id }}</td>
+            <td>{{ log.product_id }}</td>
+            <td>{{ log.created_at }}</td>
+            <td>{{ log.user_agent }}</td>
+            <td>{{ log.raw_url }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>스캔 로그가 없습니다.</p>
+  {% endif %}
+
+  <div style="margin-top: 16px; font-size: 14px; color: #666;">
+    <p>현재 브라우저 세션 확인: <code>/debug/session/current</code></p>
+    <p>특정 세션 직접 조회: <code>/debug/session/&lt;sessionId&gt;</code></p>
+  </div>
+
+  <div style="margin-top: 16px;">
+    <a href="{{ url_for('welcome') }}">← 처음 화면으로</a>
+  </div>
+</div>
+</body>
+</html>
